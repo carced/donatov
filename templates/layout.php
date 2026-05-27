@@ -47,12 +47,12 @@ $alternateCanonical = \App\Seo::absoluteUrl(\App\Seo::currentPath()) . (str_cont
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?php if (!empty($isGoodPage)): ?>
     <link rel="stylesheet" href="/assets/css/vendor.css">
     <link rel="stylesheet" href="/assets/css/app.css">
-    <link rel="stylesheet" href="/assets/site.css">
-    <?php if (!empty($isGoodPage)): ?>
     <link rel="stylesheet" href="/assets/good-page.css">
     <?php endif; ?>
+    <link rel="stylesheet" href="/assets/site.css?v=2">
 
     <?php foreach ($seo['json_ld'] ?? [] as $block): ?>
     <script type="application/ld+json"><?= json_encode($block, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>

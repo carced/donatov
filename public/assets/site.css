@@ -973,3 +973,84 @@ body.referral-slide-active {
     flex: 1;
   }
 }
+
+/* === Theme guard (loads after vendor/app on product pages) === */
+html {
+  color-scheme: dark;
+}
+
+#app.app-shell {
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+#app.app-shell .main-content,
+#app.app-shell .container {
+  color: var(--text);
+}
+
+#app.app-shell .container {
+  max-width: 1200px;
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+body {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+#app.app-shell a:not(.btn):not(.good-card):not(.site-nav__link):not(.category-tabs a) {
+  color: var(--accent-2);
+}
+
+#app.app-shell .form-control,
+#app.app-shell select,
+#app.app-shell input,
+#app.app-shell textarea {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text) !important;
+  border-color: var(--border-strong) !important;
+}
+
+#app.app-shell .checkout-table,
+#app.app-shell .data-table {
+  color: var(--text);
+}
+
+#app.app-shell .checkout-table th,
+#app.app-shell .checkout-table td,
+#app.app-shell .data-table th,
+#app.app-shell .data-table td {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Catalog card title (h2/h3) */
+.good-card .good-card__title {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.good-card-wrap:hover {
+  transform: translateY(-3px);
+  transition: transform var(--transition);
+}
+
+.good-card-wrap:hover .good-card,
+.good-card-wrap:hover .good-card-actions {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+
+.referral-promo.card-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+

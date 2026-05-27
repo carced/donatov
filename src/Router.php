@@ -106,6 +106,7 @@ final class Router
             '/cart/add' => $this->postCartAdd(),
             '/cart/remove' => $this->postCartRemove(),
             '/checkout' => $this->postCheckout(),
+            '/buy/confirm' => $this->postBuyConfirm(),
             '/admin/login' => $this->postAdminLogin(),
             default => $this->notFound(),
         };
@@ -140,7 +141,9 @@ final class Router
         $groups = $this->catalog->packGroups((int) $good['id']);
         $fields = $this->catalog->fieldsForGood((int) $good['id']);
         $fx = $this->catalog->latestFx();
-        $this->render('good', compact('good', 'content', 'packs', 'groups', 'fields', 'fx'));
+        $cryptoWallets = CryptoPayment::wallets();
+        $cryptoRates = CryptoPayment::usdPrices();
+        $this->render('good', compact('good', 'content', 'packs', 'groups', 'fields', 'fx', 'cryptoWallets', 'cryptoRates'));
     }
 
     private function checkout(): void
@@ -194,6 +197,37 @@ final class Router
             $this->orders->removePack($id);
         }
         $this->redirect('/checkout');
+    }
+
+
+    private function postBuyConfirm(): void
+    {
+        $packId = (int) ($_POST['pack_id'] ?? 0);
+        $cryptoId = trim((string) ($_POST['crypto_id'] ?? ''));
+        $cryptoAmount = trim((string) ($_POST['crypto_amount'] ?? ''));
+        $email = trim($_POST['email'] ?? '') ?: null;
+
+        $fieldValues = [];
+        $goodId = (int) ($_POST['good_id'] ?? 0);
+        if ($goodId > 0 && is_array($_POST['fields'] ?? null)) {
+            $fieldValues[$goodId] = array_map('trim', $_POST['fields']);
+        }
+
+        try {
+            $orderId = $this->orders->createCryptoOrder(
+                $packId,
+                I18n::lang(),
+                $cryptoId,
+                $cryptoAmount,
+                $email,
+                $fieldValues,
+            );
+            $this->redirect('/order/' . $orderId);
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            $slug = trim((string) ($_POST['good_slug'] ?? ''));
+            $this->redirect($slug !== '' ? '/g/' . $slug . '#crypto-payment' : '/');
+        }
     }
 
     private function postCheckout(): void

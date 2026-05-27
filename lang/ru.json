@@ -30,5 +30,21 @@
   "admin_login": "Вход в админку",
   "admin_orders": "Заказы",
   "password": "Пароль",
-  "login": "Войти"
+  "login": "Войти",
+  "buy_now": "Купить",
+  "crypto_payment_title": "Оплата криптовалютой",
+  "selected_item": "Выбранный товар",
+  "crypto_select_hint": "Выберите криптовалюту для оплаты",
+  "send_exactly": "Отправьте ровно",
+  "wallet_address": "Адрес кошелька",
+  "copy_address": "Копировать адрес",
+  "payment_instructions": "Инструкция по оплате",
+  "crypto_step_send": "Отправьте указанную сумму на адрес выше",
+  "crypto_step_sent": "После отправки нажмите «Я оплатил» ниже",
+  "crypto_step_verify": "Платёж будет проверен автоматически",
+  "crypto_step_deliver": "После подтверждения заказ будет доставлен автоматически в течение 1–10 минут",
+  "i_sent_payment": "Я оплатил",
+  "optional": "необязательно",
+  "crypto_instruction_send": "Отправьте ровно {amount} {symbol} ({name}) на адрес выше",
+  "worth_of": "на сумму"
 }

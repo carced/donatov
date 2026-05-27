@@ -2,6 +2,9 @@
 <h1><?= e(t('order_success')) ?></h1>
 <p><strong><?= e(t('order_number')) ?>:</strong> <?= e($order['order_number']) ?></p>
 <p><strong><?= e(t('total')) ?>:</strong> <?= price_usd((float)$order['total_usd']) ?></p>
+<?php if (!empty($order['notes'])): ?>
+<p><strong><?= e(t('payment_method')) ?>:</strong><br><?= nl2br(e($order['notes'])) ?></p>
+<?php endif; ?>
 <p><strong>Status:</strong> <?= e(t('status_pending')) ?></p>
 <ul>
 <?php foreach ($order['items'] as $item): ?>

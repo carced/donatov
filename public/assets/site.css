@@ -209,3 +209,145 @@ body {
   color: #666;
   margin-bottom: 16px;
 }
+
+.pack-item.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(91, 87, 162, 0.25);
+}
+
+.crypto-payment-panel {
+  margin-top: 32px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.5s ease, opacity 0.35s ease, margin 0.35s ease;
+}
+
+.crypto-payment-panel.is-open {
+  max-height: 4000px;
+  opacity: 1;
+}
+
+.crypto-payment-inner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.crypto-selected-pack {
+  margin: 0 0 20px;
+  font-size: 1rem;
+}
+
+.crypto-usd-total {
+  margin-left: 8px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.crypto-wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.crypto-wallet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.crypto-wallet-card:hover {
+  border-color: var(--accent);
+}
+
+.crypto-wallet-card.active {
+  border-color: var(--accent);
+  background: rgba(91, 87, 162, 0.08);
+}
+
+.crypto-wallet-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.crypto-wallet-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.crypto-wallet-network {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.crypto-details {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.crypto-amount-box {
+  background: linear-gradient(135deg, #5b57a2 0%, #1487c9 100%);
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.crypto-amount-value {
+  display: block;
+  font-size: 1.75rem;
+  margin: 8px 0;
+}
+
+.crypto-address-box {
+  margin-bottom: 20px;
+}
+
+.crypto-address {
+  display: block;
+  word-break: break-all;
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+  font-size: 0.85rem;
+}
+
+.crypto-instructions ol {
+  margin: 0 0 20px;
+  padding-left: 20px;
+}
+
+.crypto-instructions li {
+  margin-bottom: 8px;
+}
+
+.btn-lg {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 24px;
+  font-size: 1.05rem;
+}
+
+.crypto-hint {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.crypto-player-fields {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}

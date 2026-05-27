@@ -179,4 +179,83 @@ final class OrderService
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+
+    public function createCryptoOrder(
+        int $packId,
+        string $lang,
+        string $cryptoId,
+        string $cryptoAmount,
+        ?string $email,
+        array $fieldValuesByGood,
+    ): int {
+        $pack = $this->catalog->packById($packId);
+        if (!$pack) {
+            throw new \RuntimeException('Invalid pack');
+        }
+
+        $wallet = CryptoPayment::walletById($cryptoId);
+        if (!$wallet) {
+            throw new \RuntimeException('Invalid crypto method');
+        }
+
+        $lineTotal = (float) $pack['price_usd'];
+        $notes = sprintf(
+            'Crypto: %s (%s) | Amount: %s %s | Address: %s',
+            $wallet['name'],
+            $wallet['network'],
+            $cryptoAmount,
+            $wallet['symbol'],
+            $wallet['address']
+        );
+
+        $orderNumber = 'ORD-' . strtoupper(bin2hex(random_bytes(4))) . '-' . time();
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO orders (order_number, status, lang, total_usd, payment_method_id, customer_email, notes)
+                 VALUES (?, ?, ?, ?, NULL, ?, ?)'
+            );
+            $stmt->execute([
+                $orderNumber,
+                'pending',
+                $lang,
+                $lineTotal,
+                $email,
+                $notes,
+            ]);
+            $orderId = (int) $this->pdo->lastInsertId();
+
+            $this->pdo->prepare(
+                'INSERT INTO order_items (order_id, good_id, pack_id, pack_name_ru, quantity, unit_price_usd, line_total_usd)
+                 VALUES (?, ?, ?, ?, 1, ?, ?)'
+            )->execute([
+                $orderId,
+                $pack['good_id'],
+                $pack['id'],
+                $pack['name_ru'],
+                $pack['price_usd'],
+                $lineTotal,
+            ]);
+
+            $fieldStmt = $this->pdo->prepare(
+                'INSERT INTO order_field_values (order_id, good_id, field_key, field_value) VALUES (?, ?, ?, ?)'
+            );
+            foreach ($fieldValuesByGood as $goodId => $fields) {
+                foreach ($fields as $key => $value) {
+                    if ($value === '') {
+                        continue;
+                    }
+                    $fieldStmt->execute([$orderId, (int) $goodId, $key, $value]);
+                }
+            }
+
+            $this->pdo->commit();
+            return $orderId;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
 }

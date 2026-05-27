@@ -12,6 +12,7 @@ require_once $root . '/src/Translator.php';
 require_once $root . '/src/I18n.php';
 require_once $root . '/src/CatalogRepository.php';
 require_once $root . '/src/OrderService.php';
+require_once $root . '/src/CryptoPayment.php';
 require_once $root . '/src/Router.php';
 
 use App\Config;

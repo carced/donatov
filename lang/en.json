@@ -30,5 +30,21 @@
   "admin_login": "Admin login",
   "admin_orders": "Orders",
   "password": "Password",
-  "login": "Login"
+  "login": "Login",
+  "buy_now": "Buy",
+  "crypto_payment_title": "Cryptocurrency payment",
+  "selected_item": "Selected item",
+  "crypto_select_hint": "Select a cryptocurrency to pay",
+  "send_exactly": "Send exactly",
+  "wallet_address": "Wallet address",
+  "copy_address": "Copy address",
+  "payment_instructions": "Payment instructions",
+  "crypto_step_send": "Send the exact amount to the address above",
+  "crypto_step_sent": "After sending, click \"I've Sent Payment\" below",
+  "crypto_step_verify": "Payment will be verified automatically",
+  "crypto_step_deliver": "Once confirmed, your order will be delivered automatically within 1–10 minutes",
+  "i_sent_payment": "I've Sent Payment",
+  "optional": "optional",
+  "crypto_instruction_send": "Send exactly {amount} {symbol} ({name}) to the address above",
+  "worth_of": "worth of"
 }

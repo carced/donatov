@@ -1,25 +1,23 @@
 <?php require_once __DIR__ . '/helpers.php';
 $sort = $sort ?? 'popular';
-$sortBase = '/?' . (isset($_GET['lang']) ? 'lang=' . urlencode((string) $_GET['lang']) . '&' : '');
 ?>
 <?php if (!empty($refTracked)): ?>
 <div class="alert alert-success" role="status"><?= e(t('referral_tracked_banner')) ?></div>
 <?php endif; ?>
 
-<section class="hero hero--referral">
+<section class="hero hero--referral hero--referral-unified">
     <div class="hero--referral__badge"><?= e(t('btn_free')) ?> · <?= e(t('nav_referral')) ?></div>
     <h1><?= e(t('hero_title')) ?></h1>
-    <p><?= e(t('hero_subtitle')) ?></p>
+    <p class="hero__lead"><?= e(t('hero_subtitle')) ?></p>
+    <ul class="hero__perks">
+        <li><?= e(t('referral_free_banner')) ?></li>
+        <li><?= e(t('referral_benefit_earn', ['amount' => '$0.10'])) ?></li>
+        <li><?= e(t('referral_benefit_buy')) ?></li>
+    </ul>
     <div class="hero__actions">
         <a href="/referral" class="btn btn-referral-cta" data-referral-slide><?= e(t('hero_cta_referral')) ?></a>
         <a href="/catalog" class="btn btn-secondary"><?= e(t('hero_cta_catalog')) ?></a>
     </div>
-</section>
-
-<section class="referral-promo card-panel" aria-labelledby="referral-promo-title">
-    <h2 id="referral-promo-title" class="referral-promo__title"><?= e(t('nav_referral')) ?></h2>
-    <p><?= e(t('referral_free_banner')) ?></p>
-    <a href="/referral" class="btn" data-referral-slide><?= e(t('hero_cta_referral')) ?> →</a>
 </section>
 
 <?php if ($fx): ?>

@@ -32,6 +32,23 @@ usleep(20000);
         return $result;
     }
 
+    /** Public Google Translate (gtx) — no API key required. */
+    public static function translateFree(string $text, string $from = 'ru', string $to = 'en'): string
+    {
+        $text = trim($text);
+        if ($text === '' || $from === $to) {
+            return $text;
+        }
+        $key = md5('free|' . $from . '|' . $to . '|' . $text);
+        if (isset(self::$cache[$key])) {
+            return self::$cache[$key];
+        }
+        $result = self::translateA($text, $from, $to);
+        self::$cache[$key] = $result;
+        usleep(80000);
+        return $result;
+    }
+
     private static function translateA(string $text, string $from, string $to): string
     {
         $sl = rawurlencode($from);

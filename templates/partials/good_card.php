@@ -14,6 +14,7 @@ $freeUrl = '/referral?from=free';
             <?php if (!empty($g['currency_name_ru'])): ?>
                 <small class="good-card__meta"><?= e(currency_label($g)) ?></small>
             <?php endif; ?>
+            <p class="good-card__seo"><?= e(product_seo_excerpt($g, (float) ($g['min_price_usd'] ?? 0))) ?></p>
         </div>
     </a>
     <div class="good-card-actions">

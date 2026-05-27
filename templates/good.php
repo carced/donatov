@@ -25,8 +25,8 @@ $minPriceUsd = $minPriceUsd ?? 0;
                         <?= e(t('seo_from_price', ['price' => price_usd((float) $minPriceUsd)])) ?>
                     </p>
                     <?php endif; ?>
-                    <p class="good-header-data-description text-muted product-intro">
-                        <?= e(t('seo_product_intro', ['product' => $productName, 'price' => price_usd((float) $minPriceUsd)])) ?>
+                    <p class="good-header-data-description product-seo-desc">
+                        <?= e($productSeoText ?? product_seo_description($good, (float) $minPriceUsd)) ?>
                     </p>
                 </div>
             </header>
@@ -171,6 +171,8 @@ $minPriceUsd = $minPriceUsd ?? 0;
                     </div>
                 </div>
             </section>
+
+            <?php include __DIR__ . '/partials/product_reviews.php'; ?>
 
             <?php
             $heading = t('seo_related_title');

@@ -2,7 +2,6 @@
 require_once __DIR__ . '/helpers.php';
 $lang = \App\I18n::lang();
 $otherLang = $lang === 'ru' ? 'en' : 'ru';
-$cartTotal = $cartResolved['total'] ?? 0;
 $seo = $seo ?? [
     'title' => $siteName ?? 'GameStore',
     'description' => '',
@@ -86,12 +85,6 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
                     <a href="/" class="site-nav__link"><?= e(t('nav_home')) ?></a>
                     <a href="/catalog" class="site-nav__link"><?= e(t('nav_catalog')) ?></a>
                     <a href="/referral" class="site-nav__link"><?= e(t('nav_referral')) ?></a>
-                    <a href="/checkout" class="site-nav__link site-nav__link--cart">
-                        <?= e(t('nav_cart')) ?>
-                        <?php if ($cartTotal > 0): ?>
-                            <span class="cart-pill"><?= price_usd($cartTotal) ?></span>
-                        <?php endif; ?>
-                    </a>
                     <a href="<?= e(lang_url(\App\Seo::currentPath(), $otherLang)) ?>" class="site-nav__link site-nav__link--lang" hreflang="<?= e($otherLang) ?>">
                         <?= $otherLang === 'en' ? 'EN' : 'RU' ?>
                     </a>

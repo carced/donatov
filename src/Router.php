@@ -126,7 +126,7 @@ final class Router
         if (!in_array($sort, $allowed, true)) {
             $sort = 'popular';
         }
-        $goods = $this->catalog->homeGoods($sort, 48);
+        $goods = $this->catalog->attachMinPrices($this->catalog->homeGoods($sort, 48));
         $fx = $this->catalog->latestFx();
         $refTracked = isset($_GET['ref_tracked']);
         $this->render('home', compact('goods', 'fx', 'refTracked', 'sort'));
@@ -137,7 +137,7 @@ final class Router
         $categoryId = $query['category'] ?? null;
         $tagId = $query['tag'] ?? null;
         $categories = $this->catalog->categories();
-        $goods = $this->catalog->catalogGoods($categoryId, $tagId);
+        $goods = $this->catalog->attachMinPrices($this->catalog->catalogGoods($categoryId, $tagId));
         $fx = $this->catalog->latestFx();
         $this->render('catalog', compact('categories', 'goods', 'categoryId', 'tagId', 'fx'));
     }
@@ -171,6 +171,9 @@ final class Router
             8,
         );
         $productName = I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
+        $productReviews = ProductReviews::forGood($good);
+        $reviewStats = ProductReviews::aggregate($productReviews);
+        $productSeoText = ProductSeoCopy::description($good, (float) $minPriceUsd);
         $isGoodPage = true;
         $this->render('good', compact(
             'good',
@@ -187,6 +190,9 @@ final class Router
             'minPriceUsd',
             'relatedGoods',
             'productName',
+            'productReviews',
+            'reviewStats',
+            'productSeoText',
         ));
     }
 

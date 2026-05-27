@@ -12,6 +12,9 @@ final class ListingTranslator
     /** @var list<array{0: string, 1: string}>|null */
     private static ?array $replaceRules = null;
 
+    /** @var array<string, string>|null */
+    private static ?array $packDict = null;
+
     public static function toEnglish(string $text): string
     {
         if (I18n::lang() === 'ru' || trim($text) === '') {
@@ -37,7 +40,37 @@ final class ListingTranslator
             $result = preg_replace($pattern, $en, $result) ?? $result;
         }
 
+        $dict = self::loadPackDict();
+        if (isset($dict[$trimmed])) {
+            return $dict[$trimmed];
+        }
+        if (isset($dict[$result])) {
+            return $dict[$result];
+        }
+
+        if (self::hasCyrillic($result)) {
+            $translated = Translator::translateFree($trimmed, 'ru', 'en');
+            if ($translated !== '' && $translated !== $trimmed) {
+                return $translated;
+            }
+        }
+
         return $result;
+    }
+
+    private static function loadPackDict(): array
+    {
+        if (self::$packDict === null) {
+            $path = dirname(__DIR__) . '/lang/pack_names_en.json';
+            $data = is_file($path) ? json_decode((string) file_get_contents($path), true) : [];
+            self::$packDict = is_array($data) ? $data : [];
+        }
+        return self::$packDict;
+    }
+
+    private static function hasCyrillic(string $text): bool
+    {
+        return (bool) preg_match('/[А-Яа-яЁё]/u', $text);
     }
 
     private static function loadGlossary(): void

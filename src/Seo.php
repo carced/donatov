@@ -161,11 +161,7 @@ final class Seo
         $minPrice = $data['minPriceUsd'] ?? 0;
         $slug = $good['slug'];
         $ctx['title'] = I18n::t('seo_product_title', ['product' => $name, 'site' => $site]);
-        $ctx['description'] = I18n::t('seo_product_description', [
-            'product' => $name,
-            'price' => '$' . number_format((float) $minPrice, 2),
-            'site' => $site,
-        ]);
+        $ctx['description'] = ProductSeoCopy::metaDescription($good, (float) $minPrice, $site);
         $ctx['canonical'] = self::absoluteUrl('/g/' . $slug);
         $ctx['og_type'] = 'product';
 
@@ -200,6 +196,7 @@ final class Seo
             'url' => $ctx['canonical'],
             'sku' => (string) $good['id'],
             'brand' => ['@type' => 'Brand', 'name' => $site],
+            'aggregateRating' => self::productAggregateRating($good),
             'offers' => [
                 '@type' => 'AggregateOffer',
                 'priceCurrency' => 'USD',
@@ -337,6 +334,21 @@ final class Seo
         return I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
     }
 
+
+    /** @return array<string, mixed> */
+    private static function productAggregateRating(array $good): array
+    {
+        $reviews = ProductReviews::forGood($good);
+        $stats = ProductReviews::aggregate($reviews);
+        return [
+            '@type' => 'AggregateRating',
+            'ratingValue' => (string) $stats['average'],
+            'reviewCount' => (string) $stats['count'],
+            'bestRating' => '5',
+            'worstRating' => '4',
+        ];
+    }
+
     /** @return list<array{label: string, href: string, title?: string}> */
     public static function footerLinks(CatalogRepository $catalog): array
     {
@@ -344,7 +356,6 @@ final class Seo
             ['label' => I18n::t('nav_home'), 'href' => '/', 'title' => I18n::t('seo_link_home_title')],
             ['label' => I18n::t('nav_catalog'), 'href' => '/catalog', 'title' => I18n::t('seo_link_catalog_title')],
             ['label' => I18n::t('nav_referral'), 'href' => '/referral', 'title' => I18n::t('seo_link_referral_title')],
-            ['label' => I18n::t('checkout'), 'href' => '/checkout', 'title' => I18n::t('seo_link_checkout_title')],
         ];
         foreach (array_slice($catalog->categories(), 0, 6) as $cat) {
             $links[] = [

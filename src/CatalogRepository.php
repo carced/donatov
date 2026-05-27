@@ -107,6 +107,31 @@ final class CatalogRepository
         return array_slice($sorted, 0, $limit);
     }
 
+
+    /** @param list<array<string, mixed>> $goods */
+    public function attachMinPrices(array $goods): array
+    {
+        if ($goods === []) {
+            return $goods;
+        }
+        $ids = array_map(static fn ($g) => (int) $g['id'], $goods);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT good_id, MIN(price_usd) AS min_price_usd FROM packs
+             WHERE in_stock = 1 AND good_id IN ($placeholders) GROUP BY good_id"
+        );
+        $stmt->execute($ids);
+        $map = [];
+        while ($row = $stmt->fetch()) {
+            $map[(int) $row['good_id']] = (float) $row['min_price_usd'];
+        }
+        foreach ($goods as &$g) {
+            $g['min_price_usd'] = $map[(int) $g['id']] ?? 0.0;
+        }
+        unset($g);
+        return $goods;
+    }
+
     public function featuredGoods(int $limit = 12): array
     {
         $stmt = $this->pdo->prepare(

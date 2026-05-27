@@ -172,3 +172,14 @@ function localize_label(string $text, string $contextKey = ''): string
 
     return $text;
 }
+
+
+function product_seo_description(array $good, float $minPriceUsd = 0): string
+{
+    return \App\ProductSeoCopy::description($good, $minPriceUsd);
+}
+
+function product_seo_excerpt(array $good, float $minPriceUsd = 0): string
+{
+    return \App\ProductSeoCopy::excerpt($good, $minPriceUsd);
+}

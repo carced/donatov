@@ -140,5 +140,7 @@
   "label_server": "Server",
   "label_nickname": "Nickname",
   "home_listings_title": "Top games & services",
-  "referral_free_banner": "Earn balance with your link — then tap Free on any game"
+  "referral_free_banner": "Earn balance with your link — then tap Free on any game",
+  "reviews_title": "Customer reviews",
+  "reviews_count": ":count reviews"
 }

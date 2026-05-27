@@ -57,8 +57,34 @@ final class CatalogRepository
         return $row ?: null;
     }
 
+
+    /** Default balance tiers when a game has no packs in DB. */
+    public function ensureDefaultBalancePacks(int $goodId): void
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM packs WHERE good_id = ?');
+        $stmt->execute([$goodId]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return;
+        }
+
+        $tiers = [
+            [90001, 'Баланс 25$ за 15$', 15.00],
+            [90002, 'Баланс 50$ за 25$', 25.00],
+            [90003, 'Баланс 100$ за 50$', 50.00],
+            [90004, 'Баланс 200$ за 80$', 80.00],
+        ];
+        $ins = $this->pdo->prepare(
+            'INSERT INTO packs (good_id, source_pack_id, name_ru, price_rub_source, price_usd, in_stock)
+             VALUES (?, ?, ?, ?, ?, 1)'
+        );
+        foreach ($tiers as [$sourceId, $nameRu, $usd]) {
+            $ins->execute([$goodId, $sourceId, $nameRu, $usd, $usd]);
+        }
+    }
+
     public function packsForGood(int $goodId): array
     {
+        $this->ensureDefaultBalancePacks($goodId);
         $stmt = $this->pdo->prepare(
             'SELECT p.*, pg.source_group_id, pg.name_ru AS group_name
              FROM packs p

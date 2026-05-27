@@ -127,9 +127,8 @@ final class Router
             $sort = 'popular';
         }
         $goods = $this->catalog->attachMinPrices($this->catalog->homeGoods($sort));
-        $fx = $this->catalog->latestFx();
         $refTracked = isset($_GET['ref_tracked']);
-        $this->render('home', compact('goods', 'fx', 'refTracked', 'sort'));
+        $this->render('home', compact('goods', 'refTracked', 'sort'));
     }
 
     private function catalog(array $query): void
@@ -138,8 +137,7 @@ final class Router
         $tagId = $query['tag'] ?? null;
         $categories = $this->catalog->categories();
         $goods = $this->catalog->attachMinPrices($this->catalog->catalogGoods($categoryId, $tagId));
-        $fx = $this->catalog->latestFx();
-        $this->render('catalog', compact('categories', 'goods', 'categoryId', 'tagId', 'fx'));
+        $this->render('catalog', compact('categories', 'goods', 'categoryId', 'tagId'));
     }
 
     private function good(string $slug): void
@@ -153,7 +151,6 @@ final class Router
         $packs = $this->catalog->packsForGood((int) $good['id']);
         $groups = $this->catalog->packGroups((int) $good['id']);
         $fields = $this->catalog->fieldsForGood((int) $good['id']);
-        $fx = $this->catalog->latestFx();
         $cryptoWallets = CryptoPayment::wallets();
         $cryptoRates = CryptoPayment::usdPrices();
         $ref_balance = ReferralService::loggedInBalance($this->pdo);
@@ -181,7 +178,6 @@ final class Router
             'packs',
             'groups',
             'fields',
-            'fx',
             'cryptoWallets',
             'cryptoRates',
             'ref_balance',
@@ -214,8 +210,7 @@ final class Router
             $fieldsByGood[$goodId] = $this->catalog->fieldsForGood((int) $goodId);
         }
         $cart = $this->orders->getCart();
-        $fx = $this->catalog->latestFx();
-        $this->render('checkout', compact('resolved', 'paymentMethods', 'fieldsByGood', 'cart', 'fx'));
+        $this->render('checkout', compact('resolved', 'paymentMethods', 'fieldsByGood', 'cart'));
     }
 
     private function orderView(int $id): void

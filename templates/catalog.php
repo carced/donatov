@@ -7,9 +7,6 @@
         <?= e(t('referral_free_banner')) ?>
     </p>
 </header>
-<?php if ($fx): ?>
-<p class="fx-badge"><?= e(t('fx_note')) ?>: <?= e($fx['rate_date']) ?></p>
-<?php endif; ?>
 <nav class="category-tabs" aria-label="<?= e(t('seo_category_nav')) ?>">
     <a href="/catalog" class="<?= !$categoryId ? 'active' : '' ?>"><?= e(t('all_categories')) ?></a>
     <?php foreach ($categories as $cat): ?>

@@ -116,7 +116,7 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
                 </nav>
                 <div class="site-footer__inner">
                     <p>&copy; <?= date('Y') ?> <?= e($siteName) ?></p>
-                    <p class="site-footer__note"><?= e(t('fx_note')) ?> · <a href="/sitemap.xml"><?= e(t('seo_sitemap')) ?></a></p>
+                    <p class="site-footer__note"><a href="/sitemap.xml"><?= e(t('seo_sitemap')) ?></a></p>
                 </div>
             </div>
         </footer>

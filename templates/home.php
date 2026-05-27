@@ -20,10 +20,6 @@ $sort = $sort ?? 'popular';
     </div>
 </section>
 
-<?php if ($fx): ?>
-<p class="fx-badge"><?= e(t('fx_note')) ?>: <?= e($fx['rate_date']) ?> — 1 USD = <?= number_format((float) $fx['usd_rub'], 2) ?> RUB</p>
-<?php endif; ?>
-
 <section class="home-listings" aria-labelledby="featured-heading">
     <div class="home-listings__head">
         <h2 id="featured-heading"><?= e(t('home_listings_title')) ?></h2>

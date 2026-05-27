@@ -54,6 +54,8 @@ final class Router
             '/admin' => $this->admin(),
             '/referral' => $this->referral(),
             '/referral/dashboard' => $this->referral(),
+            '/sitemap.xml' => $this->sitemap(),
+            '/robots.txt' => $this->robotsTxt(),
             default => $this->dynamic($path),
         };
     }
@@ -151,6 +153,19 @@ final class Router
         $cryptoRates = CryptoPayment::usdPrices();
         $ref_balance = ReferralService::loggedInBalance($this->pdo);
         $ref_logged = ReferralService::isLoggedIn();
+        $minPriceUsd = 0.0;
+        foreach ($packs as $pack) {
+            $p = (float) $pack['price_usd'];
+            if ($p > 0 && ($minPriceUsd === 0.0 || $p < $minPriceUsd)) {
+                $minPriceUsd = $p;
+            }
+        }
+        $relatedGoods = $this->catalog->relatedGoods(
+            (int) $good['id'],
+            (string) $good['category_id'],
+            8,
+        );
+        $productName = I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
         $isGoodPage = true;
         $this->render('good', compact(
             'good',
@@ -164,6 +179,9 @@ final class Router
             'ref_balance',
             'ref_logged',
             'isGoodPage',
+            'minPriceUsd',
+            'relatedGoods',
+            'productName',
         ));
     }
 
@@ -315,6 +333,22 @@ final class Router
         $this->redirect('/admin');
     }
 
+    private function robotsTxt(): void
+    {
+        $base = Seo::siteUrl();
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /order/\nDisallow: /checkout\n\nSitemap: {$base}/sitemap.xml\n";
+        exit;
+    }
+
+    private function sitemap(): void
+    {
+        $goods = $this->catalog->allGoodsForSitemap();
+        header('Content-Type: application/xml; charset=utf-8');
+        echo Seo::sitemapXml($goods, I18n::lang());
+        exit;
+    }
+
     private function dynamic(string $path): void
     {
         if (preg_match('#^/g/([a-z0-9\-]+)$#', $path, $m)) {
@@ -330,7 +364,6 @@ final class Router
 
     private function render(string $template, array $data): void
     {
-        extract($data);
         $siteName = Config::get('APP_NAME', 'GameStore');
         $lang = I18n::lang();
         $catalogRepo = $this->catalog;
@@ -338,7 +371,10 @@ final class Router
         $flashError = $_SESSION['flash_error'] ?? null;
         $flashSuccess = $_SESSION['flash_success'] ?? null;
         unset($_SESSION['flash_error'], $_SESSION['flash_success']);
-        $isGoodPage = $isGoodPage ?? false;
+        $data['isGoodPage'] = $data['isGoodPage'] ?? false;
+        $seo = Seo::forTemplate($template, $data, $this->catalog);
+        $footerLinks = Seo::footerLinks($this->catalog);
+        extract($data);
         ob_start();
         require_once $this->root . '/templates/helpers.php';
         include $this->root . '/templates/' . $template . '.php';

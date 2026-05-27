@@ -110,6 +110,29 @@ final class CatalogRepository
         return $stmt->fetchAll();
     }
 
+
+    public function relatedGoods(int $goodId, string $categoryId, int $limit = 8): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT g.* FROM goods g
+             WHERE g.enabled = 1 AND g.category_id = ? AND g.id != ?
+             ORDER BY g.sort_order, g.name_ru
+             LIMIT ?'
+        );
+        $stmt->bindValue(1, $categoryId);
+        $stmt->bindValue(2, $goodId, PDO::PARAM_INT);
+        $stmt->bindValue(3, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll() ?: [];
+    }
+
+    /** @return list<array{slug: string, updated_at: string}> */
+    public function allGoodsForSitemap(): array
+    {
+        return $this->pdo->query(
+            'SELECT slug, updated_at FROM goods WHERE enabled = 1 ORDER BY id'
+        )->fetchAll() ?: [];
+    }
     public function latestFx(): ?array
     {
         $row = $this->pdo->query('SELECT * FROM fx_rates ORDER BY rate_date DESC LIMIT 1')->fetch();

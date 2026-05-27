@@ -14,6 +14,7 @@ require_once $root . '/src/CatalogRepository.php';
 require_once $root . '/src/OrderService.php';
 require_once $root . '/src/CryptoPayment.php';
 require_once $root . '/src/ReferralService.php';
+require_once $root . '/src/Seo.php';
 require_once $root . '/src/Router.php';
 
 use App\Config;

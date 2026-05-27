@@ -145,5 +145,6 @@
   "reviews_count": ":count reviews",
   "search_games_label": "Search games",
   "search_games_placeholder": "Type a game name…",
-  "search_no_results": "No games match. Try different letters."
+  "search_no_results": "No games match. Try different letters.",
+  "hero_hype_signup": "No sign-up"
 }

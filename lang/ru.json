@@ -145,5 +145,6 @@
   "reviews_count": ":count отзывов",
   "search_games_label": "Поиск игр",
   "search_games_placeholder": "Введите название игры…",
-  "search_no_results": "Ничего не найдено. Попробуйте другие буквы."
+  "search_no_results": "Ничего не найдено. Попробуйте другие буквы.",
+  "hero_hype_signup": "Без регистрации"
 }

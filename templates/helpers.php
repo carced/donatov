@@ -43,14 +43,12 @@ function cover_src(?array $good): string
     return '/assets/placeholder.png';
 }
 
+/**
+ * Relative URL for CSS/JS/images — works on any host/port (unlike APP_URL-based absolute URLs).
+ */
 function asset(string $path): string
 {
-    $path = ltrim($path, '/');
-    $base = rtrim(\App\Config::get('APP_URL', '') ?? '', '/');
-    if ($base !== '') {
-        return $base . '/' . $path;
-    }
-    return '/' . $path;
+    return '/' . ltrim($path, '/');
 }
 
 function lang_url(string $path, string $lang): string
@@ -117,4 +115,3 @@ function localize_label(string $text, string $contextKey = ''): string
     }
     return $text;
 }
-

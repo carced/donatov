@@ -331,7 +331,7 @@ final class Seo
 
     private static function goodDisplayName(array $good): string
     {
-        return I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
+        return GoodName::display($good);
     }
 
 

@@ -12,7 +12,7 @@ function e(?string $s): string
 
 function good_name(array $good): string
 {
-    return trans_entity('good', (string) $good['id'], 'name', $good['name_ru']);
+    return \App\GoodName::display($good);
 }
 
 function pack_name(array $pack): string

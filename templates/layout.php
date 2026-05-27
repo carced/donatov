@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/helpers.php';
 $lang = \App\I18n::lang();
 $otherLang = $lang === 'ru' ? 'en' : 'ru';
 ?>
@@ -10,14 +11,8 @@ $otherLang = $lang === 'ru' ? 'en' : 'ru';
     <title><?= e($siteName) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <?php
-    $cssDir = dirname(__DIR__) . '/public/assets/css';
-    if (is_dir($cssDir)) {
-        foreach (glob($cssDir . '/*.css') as $cssFile) {
-            echo '<link rel="stylesheet" href="/assets/css/' . e(basename($cssFile)) . '">' . "\n";
-        }
-    }
-    ?>
+    <link rel="stylesheet" href="/assets/css/vendor.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
     <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>

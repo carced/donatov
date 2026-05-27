@@ -301,9 +301,16 @@ if (is_dir($cssSrc)) {
     if (!is_dir($cssDest)) {
         mkdir($cssDest, 0755, true);
     }
-    foreach (glob($cssSrc . '/*') as $file) {
-        if (is_file($file)) {
-            copy($file, $cssDest . '/' . basename($file));
+    foreach (['vendor.css', 'app.css'] as $cssName) {
+        $src = $cssSrc . '/' . $cssName;
+        if (!is_file($src)) {
+            foreach (glob($cssSrc . '/*' . str_replace('.css', '', $cssName) . '*') as $alt) {
+                $src = $alt;
+                break;
+            }
+        }
+        if (is_file($src)) {
+            copy($src, $cssDest . '/' . $cssName);
         }
     }
 }

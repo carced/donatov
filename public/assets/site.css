@@ -351,3 +351,45 @@ body {
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
+
+/* Contain scraped instruction HTML */
+.instructions {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.instructions img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.instructions table {
+  max-width: 100%;
+}
+
+/* Crypto panel hidden state */
+.crypto-payment-panel[hidden] {
+  display: none !important;
+  max-height: none !important;
+  opacity: 0 !important;
+}
+
+/* Keep our pack grid readable inside donatov layout */
+.main-content .good-pack-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.main-content .pack-item {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+/* Brand text when logo image is absent */
+.brand-logo {
+  font-weight: 700;
+  text-decoration: none;
+}

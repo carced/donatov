@@ -5,45 +5,18 @@ $sort = $sort ?? 'popular';
 <div class="alert alert-success" role="status"><?= e(t('referral_tracked_banner')) ?></div>
 <?php endif; ?>
 
-<section class="hero hero--referral hero--referral-hype" aria-labelledby="referral-hero-title">
-    <div class="hero--referral__bg" aria-hidden="true">
-        <span class="hero--referral__orb hero--referral__orb--1"></span>
-        <span class="hero--referral__orb hero--referral__orb--2"></span>
-        <span class="hero--referral__orb hero--referral__orb--3"></span>
-        <span class="hero--referral__shine"></span>
-    </div>
-    <div class="hero--referral__inner">
-        <div class="hero--referral__badge">
-            <span class="hero--referral__badge-pulse" aria-hidden="true"></span>
-            <span class="hero--referral__badge-text"><?= e(t('btn_free')) ?> · <?= e(t('nav_referral')) ?></span>
-        </div>
-        <h1 id="referral-hero-title" class="hero--referral__title"><?= e(t('hero_title')) ?></h1>
-        <p class="hero--referral__lead"><?= e(t('hero_subtitle')) ?></p>
-        <div class="hero--referral__stats" role="list">
-            <div class="hero-stat-pill" role="listitem">
-                <span class="hero-stat-pill__value">$0.10</span>
-                <span class="hero-stat-pill__label"><?= e(t('referral_per_click')) ?></span>
-            </div>
-            <div class="hero-stat-pill" role="listitem">
-                <span class="hero-stat-pill__value">⚡</span>
-                <span class="hero-stat-pill__label"><?= e(t('instant')) ?></span>
-            </div>
-            <div class="hero-stat-pill" role="listitem">
-                <span class="hero-stat-pill__value">0₽</span>
-                <span class="hero-stat-pill__label"><?= e(t('hero_hype_signup')) ?></span>
-            </div>
-        </div>
-        <ul class="hero__perks hero__perks--hype">
-            <li><?= e(t('referral_free_banner')) ?></li>
-            <li><?= e(t('referral_benefit_earn', ['amount' => '$0.10'])) ?></li>
-            <li><?= e(t('referral_benefit_buy')) ?></li>
-        </ul>
-        <div class="hero__actions hero__actions--hype">
-            <a href="/referral" class="btn btn-referral-cta btn-referral-cta--hype" data-referral-slide>
-                <span><?= e(t('hero_cta_referral')) ?></span>
-            </a>
-            <a href="/catalog" class="btn btn-secondary btn-secondary--hype"><?= e(t('hero_cta_catalog')) ?></a>
-        </div>
+<section class="hero hero--referral-simple" aria-labelledby="referral-hero-title">
+    <div class="hero--referral__badge"><?= e(t('btn_free')) ?> · <?= e(t('nav_referral')) ?></div>
+    <h1 id="referral-hero-title"><?= e(t('hero_title')) ?></h1>
+    <p class="hero--referral__lead"><?= e(t('hero_subtitle')) ?></p>
+    <ul class="hero__perks">
+        <li><?= e(t('referral_free_banner')) ?></li>
+        <li><?= e(t('referral_benefit_earn', ['amount' => '$0.10'])) ?></li>
+        <li><?= e(t('referral_benefit_buy')) ?></li>
+    </ul>
+    <div class="hero__actions">
+        <a href="/referral" class="btn" data-referral-slide><?= e(t('hero_cta_referral')) ?></a>
+        <a href="/catalog" class="btn btn-secondary"><?= e(t('hero_cta_catalog')) ?></a>
     </div>
 </section>
 

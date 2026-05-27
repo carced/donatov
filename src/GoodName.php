@@ -17,7 +17,13 @@ final class GoodName
         $patterns = [
             '/\s*\(ПК\)\s*/iu',
             '/\s*\(Россия\/РБ\)\s*/iu',
+            '/\s*\(СНГ\)\s*/iu',
+            '/\s*\(CIS\)\s*/iu',
+            '/\s*\[СНГ\]\s*/iu',
+            '/\s*\[CIS\]\s*/iu',
             '/\s*ПК\s*$/iu',
+            '/\s+СНГ\s*$/iu',
+            '/\s+CIS\s*$/iu',
         ];
 
         foreach ($patterns as $pattern) {

@@ -24,6 +24,7 @@ function pack_name(array $pack): string
 function field_label(array $field): string
 {
     $label = trans_entity('good_field', $field['good_id'] . ':' . $field['field_key'], 'label', $field['label_ru']);
+    return localize_label($label, $field['field_key'] ?? '');
 }
 
 function price_usd(float $amount): string

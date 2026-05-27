@@ -100,6 +100,13 @@ final class CatalogRepository
         return $this->pdo->query('SELECT * FROM payment_methods WHERE enabled = 1 ORDER BY id')->fetchAll();
     }
 
+    public function homeGoods(string $sort = 'popular', int $limit = 48): array
+    {
+        $rows = $this->pdo->query('SELECT * FROM goods WHERE enabled = 1')->fetchAll() ?: [];
+        $sorted = GamePopularity::sortGoods($rows, $sort);
+        return array_slice($sorted, 0, $limit);
+    }
+
     public function featuredGoods(int $limit = 12): array
     {
         $stmt = $this->pdo->prepare(

@@ -2,6 +2,10 @@
 <header class="page-header">
     <h1><?= e(t('catalog_title')) ?></h1>
     <p class="page-intro text-muted"><?= e(t('seo_catalog_intro')) ?></p>
+    <p class="referral-catalog-hint">
+        <a href="/referral" class="btn btn-sm btn-free-link" data-referral-slide><?= e(t('btn_free')) ?></a>
+        <?= e(t('referral_free_banner')) ?>
+    </p>
 </header>
 <?php if ($fx): ?>
 <p class="fx-badge"><?= e(t('fx_note')) ?>: <?= e($fx['rate_date']) ?></p>
@@ -16,16 +20,8 @@
         </a>
     <?php endforeach; ?>
 </nav>
-<div class="catalog-grid">
+<div class="catalog-grid catalog-grid--cards">
 <?php foreach ($goods as $g): ?>
-    <a href="/g/<?= e($g['slug']) ?>" class="good-card" title="<?= e(t('seo_buy_title', ['product' => good_name($g)])) ?>">
-        <img src="<?= e(cover_src($g)) ?>" alt="<?= e(t('seo_product_image_alt', ['product' => good_name($g)])) ?>" loading="lazy" decoding="async" width="180" height="180">
-        <div class="good-card-body">
-            <h2 class="good-card__title"><?= e(good_name($g)) ?></h2>
-            <?php if ($g['currency_name_ru']): ?>
-                <small><?= e(trans_entity('good', (string)$g['id'], 'currency', $g['currency_name_ru'])) ?></small>
-            <?php endif; ?>
-        </div>
-    </a>
+    <?php include __DIR__ . '/partials/good_card.php'; ?>
 <?php endforeach; ?>
 </div>

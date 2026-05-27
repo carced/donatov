@@ -48,13 +48,16 @@ $minPriceUsd = $minPriceUsd ?? 0;
                         </div>
                         <div class="pack-order">
                             <?php if ($pack['in_stock']): ?>
-                            <button type="button"
-                                    class="btn btn-primary btn-buy"
-                                    data-pack-id="<?= (int) $pack['id'] ?>"
-                                    data-pack-name="<?= e(pack_name($pack)) ?>"
-                                    data-price-usd="<?= e((string) $pack['price_usd']) ?>">
-                                <?= e(t('buy_now')) ?>
-                            </button>
+                            <div class="pack-actions">
+                                <button type="button"
+                                        class="btn btn-primary btn-buy"
+                                        data-pack-id="<?= (int) $pack['id'] ?>"
+                                        data-pack-name="<?= e(pack_name($pack)) ?>"
+                                        data-price-usd="<?= e((string) $pack['price_usd']) ?>">
+                                    <?= e(t('buy')) ?>
+                                </button>
+                                <a href="/referral" class="btn btn-secondary btn-free-link" data-referral-slide><?= e(t('btn_free')) ?></a>
+                            </div>
                             <?php else: ?>
                             <span class="text-muted"><?= e(t('out_of_stock')) ?></span>
                             <?php endif; ?>

@@ -121,10 +121,15 @@ final class Router
 
     private function home(): void
     {
-        $goods = $this->catalog->featuredGoods(24);
+        $sort = trim((string) ($_GET['sort'] ?? 'popular'));
+        $allowed = ['popular', 'name_asc', 'name_desc'];
+        if (!in_array($sort, $allowed, true)) {
+            $sort = 'popular';
+        }
+        $goods = $this->catalog->homeGoods($sort, 48);
         $fx = $this->catalog->latestFx();
         $refTracked = isset($_GET['ref_tracked']);
-        $this->render('home', compact('goods', 'fx', 'refTracked'));
+        $this->render('home', compact('goods', 'fx', 'refTracked', 'sort'));
     }
 
     private function catalog(array $query): void

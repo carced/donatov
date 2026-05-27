@@ -4,7 +4,7 @@
     <p><?= e(t('referral_program_intro')) ?></p>
 </section>
 
-<div class="referral-dashboard">
+<div class="referral-dashboard" id="referral-panel">
     <div class="referral-stats-grid">
         <div class="referral-stat-card referral-stat-card--highlight">
             <span class="referral-stat-label"><?= e(t('referral_balance')) ?></span>

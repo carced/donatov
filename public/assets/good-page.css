@@ -1,18 +1,18 @@
-/* Product page — matches donatov.net pack/header structure (works with vendor.css + app.css) */
+/* Product page — pack/header layout (dark theme) */
 
 .container-good-limited {
-  max-width: 700px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .good-limited {
-  max-width: 700px;
+  max-width: 720px;
 }
 
 .good-header {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
 
@@ -24,8 +24,9 @@
   width: 200px;
   height: 200px;
   object-fit: cover;
-  border-radius: 0.5rem;
+  border-radius: var(--radius, 14px);
   display: block;
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
 }
 
 .good-header-data {
@@ -35,108 +36,87 @@
 
 .good-header-data h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  font-weight: 700;
 }
 
-.good-header-data .badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  color: var(--bs-success, #198754);
-  margin-bottom: 0.5rem;
+.good-header-data-description {
+  margin: 0;
 }
 
 #buy-section {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 1.5rem 0 1rem;
 }
 
-/* Pack grid — donatov uses .pack cards */
 .good-packs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
   margin-bottom: 2rem;
 }
 
 .good-packs-grid .pack {
   align-items: center;
-  background-color: var(--bs-panel-bg, #fff);
-  border: 1px solid var(--bs-gray-200, #dee2e6);
-  border-radius: 0.375rem;
+  background: var(--bg-card, #1e1e28);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: var(--radius-sm, 10px);
   display: flex;
-  padding: 8px 10px;
+  padding: 12px 14px;
   position: relative;
   width: 100%;
   box-sizing: border-box;
 }
 
 .good-packs-grid .pack.selected {
-  border-color: var(--bs-pink, #d63384);
-  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.15);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
 }
 
 .good-packs-grid .pack .pack-data {
   align-items: center;
   display: flex;
   flex: 1;
-  justify-content: flex-start;
   min-width: 0;
 }
 
 .good-packs-grid .pack .pack-data-inner {
-  align-items: flex-start;
   display: flex;
   flex: 1;
   flex-direction: column;
-  font-size: 1rem;
   min-width: 0;
 }
 
 .good-packs-grid .pack .pack-name {
-  align-items: center;
-  display: flex;
-  font-weight: 500;
-  gap: 0.25rem;
-  line-height: 1.2;
+  font-weight: 600;
+  line-height: 1.3;
   margin-bottom: 0.25rem;
   word-break: break-word;
 }
 
-.good-packs-grid .pack .pack-prices {
-  align-items: center;
-  display: flex;
-}
-
 .good-packs-grid .pack .pack-prices_actual {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--bs-pink, #d63384);
-  white-space: nowrap;
+  font-weight: 700;
+  color: #06b6d4;
 }
 
 .good-packs-grid .pack .pack-order {
-  align-items: flex-end;
-  display: flex;
-  flex-direction: column;
   flex-shrink: 0;
   margin-left: 0.5rem;
 }
 
-.good-packs-grid .pack .btn-buy {
-  white-space: nowrap;
-}
-
-@media (max-width: 590.98px) {
+@media (max-width: 590px) {
   .good-header {
     flex-direction: column;
   }
+
   .good-header-cover img {
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
     margin: 0 auto;
   }
+
   .good-packs-grid {
     grid-template-columns: 1fr;
   }

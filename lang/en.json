@@ -49,8 +49,8 @@
   "worth_of": "worth of",
   "nav_referral": "Referrals",
   "referral_program_title": "Referral program",
-  "referral_program_intro": "Share your link and earn on every unique visit. Spend your balance to buy accounts for free.",
-  "referral_benefit_link": "Get a personal link after registration",
+  "referral_program_intro": "Open this page and your link is created instantly. Share it to earn $0.10 per unique visit. Spend balance on purchases — no sign-up required.",
+  "referral_benefit_link": "Your personal link is created instantly — no email or password",
   "referral_benefit_earn": "Earn :amount per unique click on your link (once per visitor per day)",
   "referral_benefit_buy": "Pay for items with your balance and get accounts for free",
   "referral_register": "Sign up",
@@ -62,7 +62,7 @@
   "referral_total_earned": "Total earned",
   "referral_per_click": "Per click",
   "referral_your_link": "Your referral link",
-  "referral_link_hint": "Share this link. When someone visits through it, you earn a reward.",
+  "referral_link_hint": "Copy and share your link. Each visitor counts once per day.",
   "referral_code": "Code",
   "referral_how_it_works": "How it works",
   "referral_step_share": "Share your link on social media, chats, or your website",
@@ -75,5 +75,6 @@
   "pay_with_referral_balance": "Pay with referral balance",
   "available": "available",
   "referral_tracked_banner": "Referral visit recorded. Thank you!",
-  "status_paid": "Paid"
+  "status_paid": "Paid",
+  "referral_no_signup_note": "Your account is tied to this browser. Save your link or keep cookies to retain your balance."
 }

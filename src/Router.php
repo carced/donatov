@@ -39,6 +39,7 @@ final class Router
         I18n::init($this->pdo, $lang);
 
         ReferralService::handleIncomingRef($this->pdo, $query, $path);
+        ReferralService::tryRestoreFromCookie($this->pdo);
 
         if ($method === 'POST') {
             $this->handlePost($path);
@@ -52,7 +53,7 @@ final class Router
             '/cart/remove' => $this->getCartRemove($query),
             '/admin' => $this->admin(),
             '/referral' => $this->referral(),
-            '/referral/dashboard' => $this->referralDashboard(),
+            '/referral/dashboard' => $this->referral(),
             default => $this->dynamic($path),
         };
     }
@@ -111,9 +112,6 @@ final class Router
             '/cart/remove' => $this->postCartRemove(),
             '/checkout' => $this->postCheckout(),
             '/buy/confirm' => $this->postBuyConfirm(),
-            '/referral/register' => $this->postReferralRegister(),
-            '/referral/login' => $this->postReferralLogin(),
-            '/referral/logout' => $this->postReferralLogout(),
             '/admin/login' => $this->postAdminLogin(),
             default => $this->notFound(),
         };
@@ -171,63 +169,11 @@ final class Router
 
     private function referral(): void
     {
-        if (ReferralService::isLoggedIn()) {
-            $this->redirect('/referral/dashboard');
-            return;
-        }
-        $this->render('referral', []);
-    }
-
-    private function referralDashboard(): void
-    {
-        $accountId = ReferralService::loggedInId();
-        if ($accountId === null) {
-            $this->redirect('/referral');
-            return;
-        }
-        $account = ReferralService::accountById($this->pdo, $accountId);
-        if (!$account) {
-            ReferralService::logout();
-            $this->redirect('/referral');
-            return;
-        }
+        $account = ReferralService::ensureOwnAccount($this->pdo);
         $referralUrl = ReferralService::referralUrl($account['code']);
-        $recentClicks = ReferralService::recentClicks($this->pdo, $accountId);
+        $recentClicks = ReferralService::recentClicks($this->pdo, (int) $account['id']);
         $earnPerClick = ReferralService::EARN_PER_CLICK;
-        $this->render('referral_dashboard', compact('account', 'referralUrl', 'recentClicks', 'earnPerClick'));
-    }
-
-    private function postReferralRegister(): void
-    {
-        $email = trim((string) ($_POST['email'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-        try {
-            ReferralService::register($this->pdo, $email, $password);
-            $_SESSION['flash_success'] = t('referral_registered');
-            $this->redirect('/referral/dashboard');
-        } catch (\Throwable $e) {
-            $_SESSION['flash_error'] = $e->getMessage();
-            $this->redirect('/referral');
-        }
-    }
-
-    private function postReferralLogin(): void
-    {
-        $email = trim((string) ($_POST['email'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-        try {
-            ReferralService::authenticate($this->pdo, $email, $password);
-            $this->redirect('/referral/dashboard');
-        } catch (\Throwable $e) {
-            $_SESSION['flash_error'] = $e->getMessage();
-            $this->redirect('/referral');
-        }
-    }
-
-    private function postReferralLogout(): void
-    {
-        ReferralService::logout();
-        $this->redirect('/referral');
+        $this->render('referral', compact('account', 'referralUrl', 'recentClicks', 'earnPerClick'));
     }
 
     private function checkout(): void

@@ -107,7 +107,7 @@ See repository license. Source catalog data is owned by the original site operat
 
 ## Referral program
 
-Users can register at `/referral`, get a personal link (`/r/YOURCODE`), and earn **$0.10** per unique visitor per day when someone opens that link.
+Users open `/referral` to get an instant personal link (no sign-up). Accounts are tied to the browser via a secure cookie, get a personal link (`/r/YOURCODE`), and earn **$0.10** per unique visitor per day when someone opens that link.
 
 - Balance is shown on `/referral/dashboard`
 - On a product page, logged-in users with enough balance can check **Pay with referral balance** to complete the order instantly (no crypto)
@@ -119,3 +119,12 @@ mysql donatov < database/referral_migration.sql
 ```
 
 Fresh installs include referral tables in `database/schema.sql`.
+
+
+### Anonymous referrals
+
+No email or password. Visiting `/referral` creates a referral code automatically. A signed cookie keeps your balance across sessions on the same browser.
+
+```bash
+mysql donatov < database/referral_anonymous_migration.sql
+```

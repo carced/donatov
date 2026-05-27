@@ -10,24 +10,115 @@ final class ReferralService
 {
     public const EARN_PER_CLICK = 0.10;
 
-    public static function loggedInId(): ?int
+    private const COOKIE_NAME = 'ref_owner';
+
+    public static function currentAccountId(): ?int
     {
         $id = $_SESSION['referral_account_id'] ?? null;
         return $id ? (int) $id : null;
     }
 
-    public static function isLoggedIn(): bool
+    /** @deprecated Use currentAccountId() */
+    public static function loggedInId(): ?int
     {
-        return self::loggedInId() !== null;
+        return self::currentAccountId();
     }
 
-    public static function loggedInBalance(PDO $pdo): float
+    public static function isLoggedIn(): bool
     {
-        $id = self::loggedInId();
+        return self::currentAccountId() !== null;
+    }
+
+    public static function balanceForSession(PDO $pdo): float
+    {
+        $id = self::currentAccountId();
         if ($id === null) {
             return 0.0;
         }
         return self::getBalance($pdo, $id);
+    }
+
+    /** Restore referral account from cookie without creating a new one. */
+    public static function tryRestoreFromCookie(PDO $pdo): void
+    {
+        if (self::currentAccountId() !== null) {
+            return;
+        }
+        $account = self::restoreFromCookie($pdo);
+        if ($account !== null) {
+            self::bindAccount($account);
+        }
+    }
+
+    /** @deprecated Use balanceForSession() */
+    public static function loggedInBalance(PDO $pdo): float
+    {
+        return self::balanceForSession($pdo);
+    }
+
+    /** Get or create this visitor's referral account (no sign-up). */
+    public static function ensureOwnAccount(PDO $pdo): array
+    {
+        $fromSession = self::restoreFromSession($pdo);
+        if ($fromSession !== null) {
+            return $fromSession;
+        }
+
+        $fromCookie = self::restoreFromCookie($pdo);
+        if ($fromCookie !== null) {
+            self::bindAccount($fromCookie);
+            return $fromCookie;
+        }
+
+        $account = self::createAnonymousAccount($pdo);
+        self::bindAccount($account);
+        return $account;
+    }
+
+    private static function restoreFromSession(PDO $pdo): ?array
+    {
+        $id = self::currentAccountId();
+        if ($id === null) {
+            return null;
+        }
+        $account = self::accountById($pdo, $id);
+        if ($account === null) {
+            unset($_SESSION['referral_account_id']);
+            return null;
+        }
+        return $account;
+    }
+
+    private static function restoreFromCookie(PDO $pdo): ?array
+    {
+        $token = $_COOKIE[self::COOKIE_NAME] ?? '';
+        if ($token === '') {
+            return null;
+        }
+        $id = self::verifyAccountToken($token);
+        if ($id === null) {
+            return null;
+        }
+        return self::accountById($pdo, $id);
+    }
+
+    private static function bindAccount(array $account): void
+    {
+        $_SESSION['referral_account_id'] = (int) $account['id'];
+        self::setOwnerCookie((int) $account['id']);
+    }
+
+    private static function createAnonymousAccount(PDO $pdo): array
+    {
+        $code = self::generateUniqueCode($pdo);
+        $stmt = $pdo->prepare('INSERT INTO referral_accounts (code, email, password_hash) VALUES (?, NULL, NULL)');
+        $stmt->execute([$code]);
+        $id = (int) $pdo->lastInsertId();
+        $account = self::accountById($pdo, $id);
+        if ($account === null) {
+            throw new \RuntimeException('Could not create referral account');
+        }
+        return $account;
     }
 
     public static function accountById(PDO $pdo, int $id): ?array
@@ -44,53 +135,6 @@ final class ReferralService
         $stmt->execute([strtoupper(trim($code))]);
         $row = $stmt->fetch();
         return $row ?: null;
-    }
-
-    public static function accountByEmail(PDO $pdo, string $email): ?array
-    {
-        $stmt = $pdo->prepare('SELECT * FROM referral_accounts WHERE email = ?');
-        $stmt->execute([strtolower(trim($email))]);
-        $row = $stmt->fetch();
-        return $row ?: null;
-    }
-
-    public static function login(PDO $pdo, int $accountId): void
-    {
-        $_SESSION['referral_account_id'] = $accountId;
-    }
-
-    public static function logout(): void
-    {
-        unset($_SESSION['referral_account_id']);
-    }
-
-    public static function register(PDO $pdo, string $email, string $password): int
-    {
-        $email = strtolower(trim($email));
-        if ($email === '' || strlen($password) < 6) {
-            throw new \RuntimeException('Invalid email or password (min 6 chars)');
-        }
-        if (self::accountByEmail($pdo, $email)) {
-            throw new \RuntimeException('Email already registered');
-        }
-        $code = self::generateUniqueCode($pdo);
-        $stmt = $pdo->prepare(
-            'INSERT INTO referral_accounts (code, email, password_hash) VALUES (?, ?, ?)'
-        );
-        $stmt->execute([$code, $email, password_hash($password, PASSWORD_DEFAULT)]);
-        $id = (int) $pdo->lastInsertId();
-        self::login($pdo, $id);
-        return $id;
-    }
-
-    public static function authenticate(PDO $pdo, string $email, string $password): int
-    {
-        $account = self::accountByEmail($pdo, strtolower(trim($email)));
-        if (!$account || !password_verify($password, $account['password_hash'])) {
-            throw new \RuntimeException('Invalid credentials');
-        }
-        self::login($pdo, (int) $account['id']);
-        return (int) $account['id'];
     }
 
     public static function generateUniqueCode(PDO $pdo): string
@@ -110,6 +154,37 @@ final class ReferralService
         return $base . '/r/' . urlencode(strtoupper($code));
     }
 
+    public static function accountToken(int $accountId): string
+    {
+        $secret = Config::get('APP_SECRET', Config::get('ADMIN_PASSWORD', 'changeme'));
+        $sig = hash_hmac('sha256', (string) $accountId, $secret);
+        return $accountId . '.' . substr($sig, 0, 32);
+    }
+
+    private static function verifyAccountToken(string $token): ?int
+    {
+        if (!preg_match('/^(\d+)\.([a-f0-9]{32})$/', $token, $m)) {
+            return null;
+        }
+        $id = (int) $m[1];
+        $expected = self::accountToken($id);
+        if (!hash_equals($expected, $token)) {
+            return null;
+        }
+        return $id;
+    }
+
+    private static function setOwnerCookie(int $accountId): void
+    {
+        setcookie(self::COOKIE_NAME, self::accountToken($accountId), [
+            'expires' => time() + 86400 * 365,
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        $_COOKIE[self::COOKIE_NAME] = self::accountToken($accountId);
+    }
+
     /** Track ?ref= or /r/CODE click; credits $0.10 per unique visitor per day. */
     public static function trackClick(PDO $pdo, ?string $code): void
     {
@@ -121,7 +196,7 @@ final class ReferralService
             return;
         }
         $accountId = (int) $account['id'];
-        if (self::loggedInId() === $accountId) {
+        if (self::currentAccountId() === $accountId) {
             return;
         }
 

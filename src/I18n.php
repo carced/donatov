@@ -11,6 +11,7 @@ final class I18n
     private static string $lang = 'ru';
     private static array $strings = [];
     private static ?PDO $pdo = null;
+    private static array $entityCache = [];
 
     public static function init(PDO $pdo, string $lang): void
     {
@@ -18,6 +19,7 @@ final class I18n
         self::$lang = in_array($lang, ['ru', 'en'], true) ? $lang : 'ru';
         $file = dirname(__DIR__) . '/lang/' . self::$lang . '.json';
         self::$strings = is_file($file) ? json_decode(file_get_contents($file), true) : [];
+        self::$entityCache = [];
     }
 
     public static function lang(): string
@@ -41,6 +43,11 @@ final class I18n
         }
 
         $hash = hash('sha256', $ruFallback);
+        $cacheKey = implode('|', [self::$lang, $type, $entityId, $field, $hash]);
+        if (array_key_exists($cacheKey, self::$entityCache)) {
+            return self::$entityCache[$cacheKey];
+        }
+
         $stmt = self::$pdo->prepare(
             'SELECT id, text_value FROM translations
              WHERE entity_type = ? AND entity_id = ? AND field_name = ? AND lang = ?'
@@ -50,15 +57,18 @@ final class I18n
         if ($row) {
             $existing = $row['text_value'] ?? '';
             if (trim($existing) !== '' && trim($existing) !== trim($ruFallback)) {
+                self::$entityCache[$cacheKey] = $existing;
                 return $existing;
             }
             // If the stored translation is empty or equals the RU fallback,
             // treat it as missing and try auto-translation on demand.
         }
 
-        // Auto-translate missing EN strings on demand (cached into DB).
         $provider = Config::get('TRANSLATION_PROVIDER', 'none') ?? 'none';
-        if ($provider === 'none' || trim($ruFallback) === '') {
+        $autoTranslate = (Config::get('AUTO_TRANSLATE_ON_READ', 'false') ?? 'false') === 'true';
+        if (!$autoTranslate || $provider === 'none' || trim($ruFallback) === '') {
+            self::$entityCache[$cacheKey] = $ruFallback;
+            self::$entityCache[$cacheKey] = $ruFallback;
             return $ruFallback;
         }
 
@@ -66,6 +76,7 @@ final class I18n
         $isHtml = str_contains($ruFallback, '<') && str_contains($ruFallback, '>');
         $allowHtml = (Config::get('TRANSLATE_HTML', 'false') ?? 'false') === 'true';
         if ($isHtml && !$allowHtml) {
+            self::$entityCache[$cacheKey] = $ruFallback;
             return $ruFallback;
         }
 
@@ -76,10 +87,12 @@ final class I18n
         try {
             $translated = Translator::translate($ruFallback, 'ru', self::$lang);
         } catch (\Throwable $e) {
+            self::$entityCache[$cacheKey] = $ruFallback;
             return $ruFallback;
         }
 
         if (trim($translated) === '' || $translated === $ruFallback) {
+            self::$entityCache[$cacheKey] = $ruFallback;
             return $ruFallback;
         }
 
@@ -90,6 +103,7 @@ final class I18n
         );
         $ins->execute([$type, $entityId, $field, self::$lang, $translated, $hash]);
 
+        self::$entityCache[$cacheKey] = $translated;
         return $translated;
     }
 }

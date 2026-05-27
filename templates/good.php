@@ -42,7 +42,7 @@
 
     <?php if ($content && $content['instruction_html']): ?>
     <section class="instructions" style="margin-top:32px">
-        <?= $content['instruction_html'] ?>
+        <?= trans_entity('good_content', (string)$good['id'], 'instruction_html', $content['instruction_html']) ?>
     </section>
     <?php endif; ?>
 </article>

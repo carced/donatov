@@ -21,14 +21,40 @@ final class Translator
 
         $provider = Config::get('TRANSLATION_PROVIDER', 'none');
         $result = match ($provider) {
-            'deepl' => self::deepl($text, $to),
-            'google' => self::google($text, $to),
+            'deepl' => self::deepl($text, $from, $to),
+            'google' => self::google($text, $from, $to),
             'libretranslate' => self::libretranslate($text, $from, $to),
             default => self::fallbackTranslate($text),
         };
         self::$cache[$key] = $result;
-        usleep(100000);
+        // Small throttle to reduce request bursts.
+usleep(20000);
         return $result;
+    }
+
+    private static function translateA(string $text, string $from, string $to): string
+    {
+        $sl = rawurlencode($from);
+        $tl = rawurlencode($to);
+        $q = rawurlencode($text);
+        $url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl={$sl}&tl={$tl}&dt=t&q={$q}";
+        $resp = @file_get_contents($url);
+        if ($resp === false) {
+            return self::fallbackTranslate($text);
+        }
+        $data = json_decode($resp, true);
+        if (!is_array($data) || empty($data[0]) || !is_array($data[0])) {
+            return self::fallbackTranslate($text);
+        }
+
+        $out = '';
+        foreach ($data[0] as $piece) {
+            if (is_array($piece) && array_key_exists(0, $piece) && $piece[0] !== null) {
+                $out .= (string) $piece[0];
+            }
+        }
+
+        return $out !== '' ? $out : self::fallbackTranslate($text);
     }
 
     private static function fallbackTranslate(string $text): string
@@ -52,9 +78,11 @@ final class Translator
         ]);
         $headers = ['Content-Type: application/json'];
         $key = Config::get('TRANSLATION_API_KEY');
-        if ($key) {
-            $headers[] = 'Authorization: Bearer ' . $key;
+        if (!$key) {
+            // If no API key is configured, fall back to a public endpoint.
+            return self::translateA($text, $from, $to);
         }
+        $headers[] = 'Authorization: Bearer ' . $key;
         $ctx = stream_context_create([
             'http' => [
                 'method' => 'POST',
@@ -71,11 +99,11 @@ final class Translator
         return $data['translatedText'] ?? self::fallbackTranslate($text);
     }
 
-    private static function deepl(string $text, string $to): string
+    private static function deepl(string $text, string $from, string $to): string
     {
         $key = Config::get('TRANSLATION_API_KEY');
         if (!$key) {
-            return self::fallbackTranslate($text);
+            return self::translateA($text, $from, $to);
         }
         $target = strtoupper($to === 'en' ? 'EN' : $to);
         $url = 'https://api-free.deepl.com/v2/translate';
@@ -89,11 +117,11 @@ final class Translator
         return $data['translations'][0]['text'] ?? self::fallbackTranslate($text);
     }
 
-    private static function google(string $text, string $to): string
+    private static function google(string $text, string $from, string $to): string
     {
         $key = Config::get('TRANSLATION_API_KEY');
         if (!$key) {
-            return self::fallbackTranslate($text);
+            return self::translateA($text, $from, $to);
         }
         $url = 'https://translation.googleapis.com/language/translate/v2?' . http_build_query([
             'q' => $text,

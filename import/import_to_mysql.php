@@ -204,7 +204,7 @@ foreach ($catalogItems as $item) {
         $data['meta_description'] ?? null,
         isset($data['advantages']) ? json_encode($data['advantages']) : null,
     ]);
-    foreach (['short_description', 'warning_text', 'promo_text', 'uid_help', 'meta_title', 'meta_description'] as $f) {
+    foreach (['short_description', 'description_html', 'instruction_html', 'warning_text', 'promo_text', 'uid_help', 'meta_title', 'meta_description'] as $f) {
         if (!empty($data[$f])) {
             upsertTranslation($pdo, 'good_content', (string) $gid, $f, $data[$f]);
         }

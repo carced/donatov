@@ -29,6 +29,12 @@ final class Router
         if (isset($query['lang']) && in_array($query['lang'], ['ru', 'en'], true)) {
             $_SESSION['lang'] = $query['lang'];
         }
+
+        if (empty($_SESSION['lang'])) {
+            $detected = $this->detectLangFromBrowser();
+            $_SESSION['lang'] = $detected ?? Config::get('DEFAULT_LANG', 'ru');
+        }
+
         $lang = $_SESSION['lang'] ?? Config::get('DEFAULT_LANG', 'ru');
         I18n::init($this->pdo, $lang);
 
@@ -45,6 +51,53 @@ final class Router
             '/admin' => $this->admin(),
             default => $this->dynamic($path),
         };
+    }
+
+
+    private function detectLangFromBrowser(): ?string
+    {
+        $header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $parts = array_filter(array_map('trim', explode(',', (string) $header)));
+        if ($parts === []) {
+            return null;
+        }
+
+        $best = null;
+        $bestQ = -1.0;
+        foreach ($parts as $part) {
+            $langTag = strtolower($part);
+            $q = 1.0;
+
+            if (str_contains($part, ';')) {
+                [$langTag, $params] = array_pad(explode(';', $part, 2), 2, '');
+                if (preg_match('/q=([0-9.]+)/', $params, $m)) {
+                    $q = (float) $m[1];
+                }
+            }
+
+            $langTag = trim($langTag);
+            if ($langTag === '') {
+                continue;
+            }
+
+            if (str_starts_with($langTag, 'en')) {
+                if ($q > $bestQ) {
+                    $bestQ = $q;
+                    $best = 'en';
+                }
+                continue;
+            }
+
+            if (str_starts_with($langTag, 'ru')) {
+                if ($q > $bestQ) {
+                    $bestQ = $q;
+                    $best = 'ru';
+                }
+                continue;
+            }
+        }
+
+        return $best;
     }
 
     private function handlePost(string $path): void

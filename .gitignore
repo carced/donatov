@@ -1,0 +1,6 @@
+.env
+data/
+vendor/
+*.log
+.DS_Store
+public/assets/covers/

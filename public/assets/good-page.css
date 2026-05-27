@@ -1,0 +1,143 @@
+/* Product page — matches donatov.net pack/header structure (works with vendor.css + app.css) */
+
+.container-good-limited {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.good-limited {
+  max-width: 700px;
+}
+
+.good-header {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.good-header-cover {
+  flex-shrink: 0;
+}
+
+.good-header-cover img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  display: block;
+}
+
+.good-header-data {
+  flex: 1;
+  min-width: 0;
+}
+
+.good-header-data h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.good-header-data .badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--bs-success, #198754);
+  margin-bottom: 0.5rem;
+}
+
+#buy-section {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem;
+}
+
+/* Pack grid — donatov uses .pack cards */
+.good-packs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.good-packs-grid .pack {
+  align-items: center;
+  background-color: var(--bs-panel-bg, #fff);
+  border: 1px solid var(--bs-gray-200, #dee2e6);
+  border-radius: 0.375rem;
+  display: flex;
+  padding: 8px 10px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.good-packs-grid .pack.selected {
+  border-color: var(--bs-pink, #d63384);
+  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.15);
+}
+
+.good-packs-grid .pack .pack-data {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.good-packs-grid .pack .pack-data-inner {
+  align-items: flex-start;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-size: 1rem;
+  min-width: 0;
+}
+
+.good-packs-grid .pack .pack-name {
+  align-items: center;
+  display: flex;
+  font-weight: 500;
+  gap: 0.25rem;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+.good-packs-grid .pack .pack-prices {
+  align-items: center;
+  display: flex;
+}
+
+.good-packs-grid .pack .pack-prices_actual {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--bs-pink, #d63384);
+  white-space: nowrap;
+}
+
+.good-packs-grid .pack .pack-order {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.good-packs-grid .pack .btn-buy {
+  white-space: nowrap;
+}
+
+@media (max-width: 590.98px) {
+  .good-header {
+    flex-direction: column;
+  }
+  .good-header-cover img {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .good-packs-grid {
+    grid-template-columns: 1fr;
+  }
+}

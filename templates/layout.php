@@ -14,6 +14,9 @@ $otherLang = $lang === 'ru' ? 'en' : 'ru';
     <link rel="stylesheet" href="/assets/css/vendor.css">
     <link rel="stylesheet" href="/assets/css/app.css">
     <link rel="stylesheet" href="/assets/site.css">
+    <?php if (!empty($isGoodPage)): ?>
+    <link rel="stylesheet" href="/assets/good-page.css">
+    <?php endif; ?>
 </head>
 <body>
     <div id="app">
@@ -29,6 +32,7 @@ $otherLang = $lang === 'ru' ? 'en' : 'ru';
                         <nav class="navigation-side --menu">
                             <a href="/"><?= e(t('nav_home')) ?></a>
                             <a href="/catalog"><?= e(t('nav_catalog')) ?></a>
+                            <a href="/referral"><?= e(t('nav_referral')) ?></a>
                             <a href="/checkout"><?= e(t('nav_cart')) ?>
                                 <?php if ($cartResolved['total'] > 0): ?>
                                     (<?= price_usd($cartResolved['total']) ?>)
@@ -44,7 +48,10 @@ $otherLang = $lang === 'ru' ? 'en' : 'ru';
                 </div>
             </div>
         </header>
-        <main class="container main-content">
+        <main class="container main-content<?= !empty($isGoodPage) ? ' main-content--good' : '' ?>">
+            <?php if (!empty($flashSuccess)): ?>
+                <div class="alert alert-success"><?= e($flashSuccess) ?></div>
+            <?php endif; ?>
             <?php if (!empty($flashError)): ?>
                 <div class="alert alert-error"><?= e($flashError) ?></div>
             <?php endif; ?>

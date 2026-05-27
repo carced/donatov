@@ -4,7 +4,7 @@
 
   const rates = window.CRYPTO_RATES || {};
   const i18n = window.CRYPTO_I18N || {};
-  const goodPage = document.querySelector('.good-page');
+  const goodPage = document.querySelector('.good-page-wrap');
   const goodId = goodPage?.dataset.goodId || '';
   const goodSlug = goodPage?.dataset.goodSlug || '';
 
@@ -25,10 +25,37 @@
   const formCryptoId = document.getElementById('form_crypto_id');
   const formCryptoAmount = document.getElementById('form_crypto_amount');
   const formEmailHidden = document.getElementById('form_email_hidden');
+  const formUseReferral = document.getElementById('form_use_referral');
+  const useReferralCheckbox = document.getElementById('use_referral_balance');
   const confirmForm = document.getElementById('crypto-confirm-form');
+  const cryptoWalletGrid = document.querySelector('.crypto-wallet-grid');
+  const referralPayBox = document.querySelector('.referral-pay-box');
 
   function formatUsd(n) {
     return '$' + Number(n).toFixed(2);
+  }
+
+  function isReferralPay() {
+    return useReferralCheckbox && useReferralCheckbox.checked;
+  }
+
+  function syncReferralMode() {
+    const referral = isReferralPay();
+    if (formUseReferral) {
+      formUseReferral.value = referral ? '1' : '0';
+    }
+    if (cryptoWalletGrid) {
+      cryptoWalletGrid.hidden = referral;
+    }
+    if (referralPayBox) {
+      referralPayBox.classList.toggle('is-active', referral);
+    }
+    if (referral && details) {
+      details.hidden = true;
+      selectedWallet = null;
+      if (formCryptoId) formCryptoId.value = '';
+      if (formCryptoAmount) formCryptoAmount.value = '';
+    }
   }
 
   function calcCryptoAmount(usd, wallet) {
@@ -50,10 +77,11 @@
     });
     const email = document.getElementById('crypto_email');
     if (email && formEmailHidden) formEmailHidden.value = email.value.trim();
+    syncReferralMode();
   }
 
   function updatePaymentDetails() {
-    if (!selectedWallet || !selectedPack) return;
+    if (!selectedWallet || !selectedPack || isReferralPay()) return;
     const amount = calcCryptoAmount(selectedUsd, selectedWallet);
     const symbol = selectedWallet.dataset.symbol;
     const name = selectedWallet.dataset.name;
@@ -84,13 +112,14 @@
     if (formPackId) formPackId.value = packBtn.dataset.packId || '';
 
     document.querySelectorAll('.crypto-wallet-card').forEach((c) => c.classList.remove('active'));
-    document.querySelectorAll('.pack-item').forEach((p) => p.classList.remove('selected'));
-    const item = packBtn.closest('.pack-item');
+    document.querySelectorAll('.good-packs-grid .pack').forEach((p) => p.classList.remove('selected'));
+    const item = packBtn.closest('.pack');
     if (item) item.classList.add('selected');
 
     if (details) details.hidden = true;
     panel.hidden = false;
     panel.classList.add('is-open');
+    syncReferralMode();
 
     requestAnimationFrame(() => {
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -101,9 +130,13 @@
     btn.addEventListener('click', () => openPayment(btn));
   });
 
+  if (useReferralCheckbox) {
+    useReferralCheckbox.addEventListener('change', syncReferralMode);
+  }
+
   document.querySelectorAll('.crypto-wallet-card').forEach((card) => {
     card.addEventListener('click', () => {
-      if (!selectedPack) return;
+      if (!selectedPack || isReferralPay()) return;
       document.querySelectorAll('.crypto-wallet-card').forEach((c) => c.classList.remove('active'));
       card.classList.add('active');
       selectedWallet = card;
@@ -132,7 +165,12 @@
   if (confirmForm) {
     confirmForm.addEventListener('submit', (e) => {
       syncHiddenFields();
-      if (!selectedPack || !selectedWallet) {
+      if (!selectedPack) {
+        e.preventDefault();
+        alert('Please select a pack.');
+        return;
+      }
+      if (!isReferralPay() && !selectedWallet) {
         e.preventDefault();
         alert('Please select a pack and a cryptocurrency.');
         return;

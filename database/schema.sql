@@ -152,6 +152,8 @@ CREATE TABLE IF NOT EXISTS orders (
     payment_method_id INT UNSIGNED DEFAULT NULL,
     customer_email VARCHAR(255) DEFAULT NULL,
     notes TEXT,
+    referral_account_id INT UNSIGNED DEFAULT NULL,
+    referral_credit_usd DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE SET NULL,
@@ -181,6 +183,33 @@ CREATE TABLE IF NOT EXISTS order_field_values (
     field_value TEXT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (good_id) REFERENCES goods(id)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS referral_accounts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(16) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    balance_usd DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    total_clicks INT UNSIGNED NOT NULL DEFAULT 0,
+    total_earned_usd DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_referral_code (code)
+);
+
+CREATE TABLE IF NOT EXISTS referral_clicks (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    account_id INT UNSIGNED NOT NULL,
+    visitor_hash VARCHAR(64) NOT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    amount_usd DECIMAL(12, 2) NOT NULL DEFAULT 0.10,
+    click_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_referral_visitor_day (account_id, visitor_hash, click_date),
+    FOREIGN KEY (account_id) REFERENCES referral_accounts(id) ON DELETE CASCADE,
+    INDEX idx_clicks_account (account_id)
 );
 
 SET FOREIGN_KEY_CHECKS = 1;

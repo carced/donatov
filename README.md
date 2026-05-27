@@ -103,3 +103,19 @@ Only use scraped content if you have the right to do so. This project is for aut
 ## License
 
 See repository license. Source catalog data is owned by the original site operator.
+
+
+## Referral program
+
+Users can register at `/referral`, get a personal link (`/r/YOURCODE`), and earn **$0.10** per unique visitor per day when someone opens that link.
+
+- Balance is shown on `/referral/dashboard`
+- On a product page, logged-in users with enough balance can check **Pay with referral balance** to complete the order instantly (no crypto)
+
+Apply DB changes on existing installs:
+
+```bash
+mysql donatov < database/referral_migration.sql
+```
+
+Fresh installs include referral tables in `database/schema.sql`.

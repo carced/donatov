@@ -38,6 +38,8 @@ final class Router
         $lang = $_SESSION['lang'] ?? Config::get('DEFAULT_LANG', 'ru');
         I18n::init($this->pdo, $lang);
 
+        ReferralService::handleIncomingRef($this->pdo, $query, $path);
+
         if ($method === 'POST') {
             $this->handlePost($path);
             return;
@@ -49,6 +51,8 @@ final class Router
             '/checkout' => $this->checkout(),
             '/cart/remove' => $this->getCartRemove($query),
             '/admin' => $this->admin(),
+            '/referral' => $this->referral(),
+            '/referral/dashboard' => $this->referralDashboard(),
             default => $this->dynamic($path),
         };
     }
@@ -107,6 +111,9 @@ final class Router
             '/cart/remove' => $this->postCartRemove(),
             '/checkout' => $this->postCheckout(),
             '/buy/confirm' => $this->postBuyConfirm(),
+            '/referral/register' => $this->postReferralRegister(),
+            '/referral/login' => $this->postReferralLogin(),
+            '/referral/logout' => $this->postReferralLogout(),
             '/admin/login' => $this->postAdminLogin(),
             default => $this->notFound(),
         };
@@ -116,7 +123,8 @@ final class Router
     {
         $goods = $this->catalog->featuredGoods(24);
         $fx = $this->catalog->latestFx();
-        $this->render('home', compact('goods', 'fx'));
+        $refTracked = isset($_GET['ref_tracked']);
+        $this->render('home', compact('goods', 'fx', 'refTracked'));
     }
 
     private function catalog(array $query): void
@@ -143,7 +151,83 @@ final class Router
         $fx = $this->catalog->latestFx();
         $cryptoWallets = CryptoPayment::wallets();
         $cryptoRates = CryptoPayment::usdPrices();
-        $this->render('good', compact('good', 'content', 'packs', 'groups', 'fields', 'fx', 'cryptoWallets', 'cryptoRates'));
+        $ref_balance = ReferralService::loggedInBalance($this->pdo);
+        $ref_logged = ReferralService::isLoggedIn();
+        $isGoodPage = true;
+        $this->render('good', compact(
+            'good',
+            'content',
+            'packs',
+            'groups',
+            'fields',
+            'fx',
+            'cryptoWallets',
+            'cryptoRates',
+            'ref_balance',
+            'ref_logged',
+            'isGoodPage',
+        ));
+    }
+
+    private function referral(): void
+    {
+        if (ReferralService::isLoggedIn()) {
+            $this->redirect('/referral/dashboard');
+            return;
+        }
+        $this->render('referral', []);
+    }
+
+    private function referralDashboard(): void
+    {
+        $accountId = ReferralService::loggedInId();
+        if ($accountId === null) {
+            $this->redirect('/referral');
+            return;
+        }
+        $account = ReferralService::accountById($this->pdo, $accountId);
+        if (!$account) {
+            ReferralService::logout();
+            $this->redirect('/referral');
+            return;
+        }
+        $referralUrl = ReferralService::referralUrl($account['code']);
+        $recentClicks = ReferralService::recentClicks($this->pdo, $accountId);
+        $earnPerClick = ReferralService::EARN_PER_CLICK;
+        $this->render('referral_dashboard', compact('account', 'referralUrl', 'recentClicks', 'earnPerClick'));
+    }
+
+    private function postReferralRegister(): void
+    {
+        $email = trim((string) ($_POST['email'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+        try {
+            ReferralService::register($this->pdo, $email, $password);
+            $_SESSION['flash_success'] = t('referral_registered');
+            $this->redirect('/referral/dashboard');
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            $this->redirect('/referral');
+        }
+    }
+
+    private function postReferralLogin(): void
+    {
+        $email = trim((string) ($_POST['email'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+        try {
+            ReferralService::authenticate($this->pdo, $email, $password);
+            $this->redirect('/referral/dashboard');
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            $this->redirect('/referral');
+        }
+    }
+
+    private function postReferralLogout(): void
+    {
+        ReferralService::logout();
+        $this->redirect('/referral');
     }
 
     private function checkout(): void
@@ -206,6 +290,7 @@ final class Router
         $cryptoId = trim((string) ($_POST['crypto_id'] ?? ''));
         $cryptoAmount = trim((string) ($_POST['crypto_amount'] ?? ''));
         $email = trim($_POST['email'] ?? '') ?: null;
+        $useReferral = !empty($_POST['use_referral_balance']) && $_POST['use_referral_balance'] !== '0';
 
         $fieldValues = [];
         $goodId = (int) ($_POST['good_id'] ?? 0);
@@ -217,10 +302,11 @@ final class Router
             $orderId = $this->orders->createCryptoOrder(
                 $packId,
                 I18n::lang(),
-                $cryptoId,
-                $cryptoAmount,
+                $useReferral ? null : ($cryptoId !== '' ? $cryptoId : null),
+                $useReferral ? null : ($cryptoAmount !== '' ? $cryptoAmount : null),
                 $email,
                 $fieldValues,
+                $useReferral,
             );
             $this->redirect('/order/' . $orderId);
         } catch (\Throwable $e) {
@@ -304,7 +390,9 @@ final class Router
         $catalogRepo = $this->catalog;
         $cartResolved = $this->orders->resolveCart();
         $flashError = $_SESSION['flash_error'] ?? null;
-        unset($_SESSION['flash_error']);
+        $flashSuccess = $_SESSION['flash_success'] ?? null;
+        unset($_SESSION['flash_error'], $_SESSION['flash_success']);
+        $isGoodPage = $isGoodPage ?? false;
         ob_start();
         require_once $this->root . '/templates/helpers.php';
         include $this->root . '/templates/' . $template . '.php';

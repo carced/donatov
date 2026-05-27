@@ -1,4 +1,5 @@
 <?php require_once __DIR__ . '/helpers.php'; ?>
+<?php if (!empty($refTracked)): ?><div class="alert alert-success"><?= e(t('referral_tracked_banner')) ?></div><?php endif; ?>
 <section class="hero">
     <h1><?= e(t('hero_title')) ?></h1>
     <p><?= e(t('hero_subtitle')) ?></p>

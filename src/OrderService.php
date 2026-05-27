@@ -184,45 +184,71 @@ final class OrderService
     public function createCryptoOrder(
         int $packId,
         string $lang,
-        string $cryptoId,
-        string $cryptoAmount,
+        ?string $cryptoId,
+        ?string $cryptoAmount,
         ?string $email,
         array $fieldValuesByGood,
+        bool $useReferralBalance = false,
     ): int {
         $pack = $this->catalog->packById($packId);
         if (!$pack) {
             throw new \RuntimeException('Invalid pack');
         }
 
-        $wallet = CryptoPayment::walletById($cryptoId);
-        if (!$wallet) {
-            throw new \RuntimeException('Invalid crypto method');
-        }
-
         $lineTotal = (float) $pack['price_usd'];
-        $notes = sprintf(
-            'Crypto: %s (%s) | Amount: %s %s | Address: %s',
-            $wallet['name'],
-            $wallet['network'],
-            $cryptoAmount,
-            $wallet['symbol'],
-            $wallet['address']
-        );
+        $referralAccountId = null;
+        $referralCredit = 0.0;
+        $status = 'pending';
+        $notes = '';
+
+        if ($useReferralBalance) {
+            $accountId = ReferralService::loggedInId();
+            if ($accountId === null) {
+                throw new \RuntimeException('Referral login required');
+            }
+            $balance = ReferralService::getBalance($this->pdo, $accountId);
+            if ($balance < $lineTotal) {
+                throw new \RuntimeException('Insufficient referral balance');
+            }
+            $referralAccountId = $accountId;
+            $referralCredit = $lineTotal;
+            $status = 'paid';
+            $notes = sprintf('Paid with referral balance ($%.2f)', $lineTotal);
+        } else {
+            $wallet = CryptoPayment::walletById((string) $cryptoId);
+            if (!$wallet || $cryptoAmount === null || $cryptoAmount === '') {
+                throw new \RuntimeException('Invalid crypto method');
+            }
+            $notes = sprintf(
+                'Crypto: %s (%s) | Amount: %s %s | Address: %s',
+                $wallet['name'],
+                $wallet['network'],
+                $cryptoAmount,
+                $wallet['symbol'],
+                $wallet['address']
+            );
+        }
 
         $orderNumber = 'ORD-' . strtoupper(bin2hex(random_bytes(4))) . '-' . time();
         $this->pdo->beginTransaction();
         try {
+            if ($useReferralBalance && $referralAccountId !== null) {
+                ReferralService::deductBalance($this->pdo, $referralAccountId, $lineTotal);
+            }
+
             $stmt = $this->pdo->prepare(
-                'INSERT INTO orders (order_number, status, lang, total_usd, payment_method_id, customer_email, notes)
-                 VALUES (?, ?, ?, ?, NULL, ?, ?)'
+                'INSERT INTO orders (order_number, status, lang, total_usd, payment_method_id, customer_email, notes, referral_account_id, referral_credit_usd)
+                 VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 $orderNumber,
-                'pending',
+                $status,
                 $lang,
                 $lineTotal,
                 $email,
                 $notes,
+                $referralAccountId,
+                $referralCredit,
             ]);
             $orderId = (int) $this->pdo->lastInsertId();
 

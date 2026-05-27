@@ -7,7 +7,6 @@
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       document.body.classList.toggle('nav-open', open);
     });
-
     nav.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
         nav.classList.remove('is-open');
@@ -17,17 +16,15 @@
     });
   }
 
-  /** Smooth slide emphasis when opening referral from "Free" buttons */
   document.querySelectorAll('[data-referral-slide]').forEach((el) => {
     el.addEventListener('click', (e) => {
       const href = el.getAttribute('href');
-      if (!href || !href.includes('/referral')) {
+      if (!href || href.indexOf('/referral') === -1) {
         return;
       }
       if (el.tagName === 'A' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
         e.preventDefault();
-        document.body.classList.add('referral-slide-active');
-        window.location.href = href.split('?')[0] + '?from=free#referral-panel';
+        window.location.href = '/referral?from=free#referral-panel';
       }
     });
   });
@@ -39,7 +36,7 @@
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         if (new URLSearchParams(window.location.search).get('from') === 'free') {
           panel.classList.add('referral-panel--highlight');
-          setTimeout(() => panel.classList.remove('referral-panel--highlight'), 2400);
+          window.setTimeout(() => panel.classList.remove('referral-panel--highlight'), 2400);
         }
       });
     }

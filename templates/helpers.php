@@ -24,6 +24,10 @@ function pack_name(array $pack): string
 function field_label(array $field): string
 {
     $label = trans_entity('good_field', $field['good_id'] . ':' . $field['field_key'], 'label', $field['label_ru']);
+    $byKey = label_for_field_key((string) ($field['field_key'] ?? ''));
+    if ($byKey !== null) {
+        return $byKey;
+    }
     return localize_label($label, $field['field_key'] ?? '');
 }
 
@@ -79,13 +83,62 @@ function currency_label(array $good): string
     );
 }
 
+function utf8_strtolower(string $text): string
+{
+    if (function_exists('mb_strtolower')) {
+        return mb_strtolower($text, 'UTF-8');
+    }
+
+    return strtolower($text);
+}
+
+function utf8_str_contains(string $haystack, string $needle): bool
+{
+    if ($needle === '') {
+        return true;
+    }
+    if (function_exists('mb_strpos')) {
+        return mb_strpos($haystack, $needle, 0, 'UTF-8') !== false;
+    }
+
+    return str_contains($haystack, $needle);
+}
+
+/** EN label from good_fields.field_key when available. */
+function label_for_field_key(string $fieldKey): ?string
+{
+    if (\App\I18n::lang() === 'ru' || $fieldKey === '') {
+        return null;
+    }
+    $map = [
+        'login' => 'label_login',
+        'password' => 'label_password',
+        'email' => 'label_email',
+        'uid' => 'label_uid',
+        'player_id' => 'label_player_id',
+        'server' => 'label_server',
+        'nickname' => 'label_nickname',
+    ];
+    $key = utf8_strtolower(trim($fieldKey));
+    if (!isset($map[$key])) {
+        return null;
+    }
+
+    return t($map[$key]);
+}
+
 /** Translate common field/pack labels (login, password, etc.) on EN. */
 function localize_label(string $text, string $contextKey = ''): string
 {
     if (\App\I18n::lang() === 'ru') {
         return $text;
     }
-    $lower = mb_strtolower(trim($text));
+    $byKey = label_for_field_key($contextKey);
+    if ($byKey !== null) {
+        return $byKey;
+    }
+    $trimmed = trim($text);
+    $lower = utf8_strtolower($trimmed);
     $map = [
         'login' => 'label_login',
         'password' => 'label_password',
@@ -104,14 +157,15 @@ function localize_label(string $text, string $contextKey = ''): string
     if (isset($map[$lower])) {
         return t($map[$lower]);
     }
-    if (str_contains($lower, 'логин') && str_contains($lower, 'пароль')) {
+    if (utf8_str_contains($trimmed, 'логин') && utf8_str_contains($trimmed, 'пароль')) {
         return t('label_login_password');
     }
-    if (str_contains($lower, 'пароль')) {
+    if (utf8_str_contains($trimmed, 'пароль') || utf8_str_contains($lower, 'password')) {
         return t('label_password');
     }
-    if (str_contains($lower, 'логин')) {
+    if (utf8_str_contains($trimmed, 'логин') || utf8_str_contains($lower, 'login')) {
         return t('label_login');
     }
+
     return $text;
 }

@@ -19,6 +19,7 @@ $robotsMeta = $seo['robots'];
 $ogType = $seo['og_type'];
 $alternateLangUrl = lang_url(\App\Seo::currentPath(), $otherLang);
 $alternateCanonical = \App\Seo::absoluteUrl(\App\Seo::currentPath()) . (str_contains(\App\Seo::currentPath(), '?') ? '&' : '?') . 'lang=' . $otherLang;
+$siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>">
@@ -44,7 +45,13 @@ $alternateCanonical = \App\Seo::absoluteUrl(\App\Seo::currentPath()) . (str_cont
     <meta name="twitter:title" content="<?= e($pageTitle) ?>">
     <meta name="twitter:description" content="<?= e($metaDescription) ?>">
 
+    <style id="site-theme"><?php
+    if (is_readable($siteCssPath)) {
+        echo file_get_contents($siteCssPath);
+    }
+    ?></style>
     <link rel="stylesheet" href="/assets/site.css">
+
     <?php if (!empty($isGoodPage)): ?>
     <link rel="stylesheet" href="/assets/css/vendor.css">
     <link rel="stylesheet" href="/assets/css/app.css">

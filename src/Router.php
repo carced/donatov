@@ -126,7 +126,7 @@ final class Router
         if (!in_array($sort, $allowed, true)) {
             $sort = 'popular';
         }
-        $goods = $this->catalog->attachMinPrices($this->catalog->homeGoods($sort, 48));
+        $goods = $this->catalog->attachMinPrices($this->catalog->homeGoods($sort));
         $fx = $this->catalog->latestFx();
         $refTracked = isset($_GET['ref_tracked']);
         $this->render('home', compact('goods', 'fx', 'refTracked', 'sort'));

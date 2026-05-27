@@ -41,4 +41,32 @@
       });
     }
   }
+
+  function initGameSearch() {
+    const input = document.getElementById('game-search');
+    const grid = document.querySelector('[data-catalog-grid]');
+    if (!input || !grid) {
+      return;
+    }
+    const cards = grid.querySelectorAll('.good-card-wrap');
+    const empty = document.getElementById('game-search-empty');
+
+    input.addEventListener('input', function () {
+      const q = input.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach(function (card) {
+        const hay = (card.getAttribute('data-game-search') || '').toLowerCase();
+        const show = q === '' || hay.indexOf(q) !== -1;
+        card.classList.toggle('is-search-hidden', !show);
+        if (show) {
+          visible += 1;
+        }
+      });
+      if (empty) {
+        empty.hidden = q === '' || visible > 0;
+      }
+    });
+  }
+
+  initGameSearch();
 })();

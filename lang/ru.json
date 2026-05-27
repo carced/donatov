@@ -142,5 +142,8 @@
   "home_listings_title": "Популярные игры и сервисы",
   "referral_free_banner": "Зарабатывайте на ссылке — затем жмите «Бесплатно» у любой игры",
   "reviews_title": "Отзывы покупателей",
-  "reviews_count": ":count отзывов"
+  "reviews_count": ":count отзывов",
+  "search_games_label": "Поиск игр",
+  "search_games_placeholder": "Введите название игры…",
+  "search_no_results": "Ничего не найдено. Попробуйте другие буквы."
 }

@@ -4,8 +4,11 @@ require_once dirname(__DIR__) . '/helpers.php';
 $productName = good_name($g);
 $buyUrl = '/g/' . $g['slug'];
 $freeUrl = '/referral?from=free';
+$searchHaystack = utf8_strtolower(
+    trim($productName . ' ' . ($g['slug'] ?? '') . ' ' . ($g['name_ru'] ?? '') . ' ' . ($g['currency_name_ru'] ?? '')),
+);
 ?>
-<article class="good-card-wrap">
+<article class="good-card-wrap" data-game-search="<?= e($searchHaystack) ?>">
     <a href="<?= e($buyUrl) ?>" class="good-card" title="<?= e(t('seo_buy_title', ['product' => $productName])) ?>">
         <img src="<?= e(cover_src($g)) ?>" alt="<?= e(t('seo_product_image_alt', ['product' => $productName])) ?>" loading="lazy" decoding="async" width="180" height="180">
         <div class="good-card-body">

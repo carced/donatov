@@ -40,7 +40,9 @@ $sort = $sort ?? 'popular';
         </form>
     </div>
 
-    <div class="catalog-grid catalog-grid--cards">
+    <?php include __DIR__ . '/partials/catalog_search.php'; ?>
+
+    <div class="catalog-grid catalog-grid--cards" data-catalog-grid>
         <?php foreach ($goods as $g): ?>
             <?php include __DIR__ . '/partials/good_card.php'; ?>
         <?php endforeach; ?>

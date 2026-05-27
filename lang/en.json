@@ -142,5 +142,8 @@
   "home_listings_title": "Top games & services",
   "referral_free_banner": "Earn balance with your link — then tap Free on any game",
   "reviews_title": "Customer reviews",
-  "reviews_count": ":count reviews"
+  "reviews_count": ":count reviews",
+  "search_games_label": "Search games",
+  "search_games_placeholder": "Type a game name…",
+  "search_no_results": "No games match. Try different letters."
 }

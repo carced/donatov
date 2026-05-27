@@ -43,6 +43,16 @@ function cover_src(?array $good): string
     return '/assets/placeholder.png';
 }
 
+function asset(string $path): string
+{
+    $path = ltrim($path, '/');
+    $base = rtrim(\App\Config::get('APP_URL', '') ?? '', '/');
+    if ($base !== '') {
+        return $base . '/' . $path;
+    }
+    return '/' . $path;
+}
+
 function lang_url(string $path, string $lang): string
 {
     $sep = str_contains($path, '?') ? '&' : '?';

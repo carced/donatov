@@ -2,6 +2,53 @@
 
 declare(strict_types=1);
 
+/**
+ * Serve CSS/JS/images directly when the server routes all requests here (common on some hosts).
+ */
+function servePublicAsset(string $publicDir): bool
+{
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($uri, PHP_URL_PATH) ?? '/';
+    if (!str_starts_with($path, '/assets/')) {
+        return false;
+    }
+
+    $file = $publicDir . $path;
+    $real = realpath($file);
+    $assetsRoot = realpath($publicDir . '/assets');
+    if ($real === false || $assetsRoot === false || !str_starts_with($real, $assetsRoot)) {
+        http_response_code(404);
+        return true;
+    }
+
+    $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+    $types = [
+        'css' => 'text/css; charset=utf-8',
+        'js' => 'application/javascript; charset=utf-8',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'webp' => 'image/webp',
+        'gif' => 'image/gif',
+        'svg' => 'image/svg+xml',
+        'ico' => 'image/x-icon',
+    ];
+    if (!isset($types[$ext])) {
+        http_response_code(404);
+        return true;
+    }
+
+    header('Content-Type: ' . $types[$ext]);
+    header('Cache-Control: public, max-age=86400');
+    readfile($real);
+    return true;
+}
+
+$publicDir = __DIR__;
+if (servePublicAsset($publicDir)) {
+    exit;
+}
+
 session_start();
 
 $root = dirname(__DIR__);

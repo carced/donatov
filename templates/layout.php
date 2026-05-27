@@ -44,15 +44,33 @@ $alternateCanonical = \App\Seo::absoluteUrl(\App\Seo::currentPath()) . (str_cont
     <meta name="twitter:title" content="<?= e($pageTitle) ?>">
     <meta name="twitter:description" content="<?= e($metaDescription) ?>">
 
+    <style>
+      :root{--bg:#0f0f14;--text:#f4f4f8;--accent:#8b5cf6;--card:#1e1e28;--border:rgba(255,255,255,.1)}
+      *,*::before,*::after{box-sizing:border-box}
+      html{color-scheme:dark}
+      body{margin:0;font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+      #app.app-shell{min-height:100vh;background:var(--bg);color:var(--text)}
+      .site-header{position:sticky;top:0;z-index:100;background:rgba(15,15,20,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
+      .container{max-width:1200px;margin:0 auto;padding:0 20px}
+      .site-header__inner{display:flex;align-items:center;justify-content:space-between;min-height:64px;gap:12px}
+      .site-brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;font-weight:700}
+      .site-brand__mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#06b6d4)}
+      .site-nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+      .site-nav__link{color:#9ca3b8;text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:500}
+      .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+      .hero{background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;padding:40px 24px;border-radius:14px;text-align:center;margin-bottom:24px}
+      .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff!important;text-decoration:none;font-weight:600;border:none;cursor:pointer}
+    </style>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <?php if (!empty($isGoodPage)): ?>
-    <link rel="stylesheet" href="/assets/css/vendor.css">
-    <link rel="stylesheet" href="/assets/css/app.css">
-    <link rel="stylesheet" href="/assets/good-page.css">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/vendor.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('assets/good-page.css')) ?>">
     <?php endif; ?>
-    <link rel="stylesheet" href="/assets/site.css?v=2">
+    <link rel="stylesheet" href="<?= e(asset('assets/site.css')) ?>">
 
     <?php foreach ($seo['json_ld'] ?? [] as $block): ?>
     <script type="application/ld+json"><?= json_encode($block, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
@@ -120,6 +138,6 @@ $alternateCanonical = \App\Seo::absoluteUrl(\App\Seo::currentPath()) . (str_cont
             </div>
         </footer>
     </div>
-    <script src="/assets/site.js" defer></script>
+    <script src="<?= e(asset('assets/site.js')) ?>" defer></script>
 </body>
 </html>

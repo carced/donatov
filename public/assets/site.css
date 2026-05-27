@@ -616,6 +616,26 @@ a {
   border-top: 1px solid var(--border);
 }
 
+
+.crypto-address-box {
+  margin-bottom: 4px;
+}
+
+.crypto-address-box .btn-copy {
+  margin-top: 10px;
+  width: 100%;
+}
+
+#crypto-confirm-form {
+  margin-top: 22px;
+  padding-top: 4px;
+}
+
+#crypto-submit-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
 .crypto-address {
   word-break: break-all;
   display: block;

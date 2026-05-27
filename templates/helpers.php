@@ -18,7 +18,9 @@ function good_name(array $good): string
 function pack_name(array $pack): string
 {
     $name = trans_entity('pack', $pack['good_id'] . ':' . $pack['source_pack_id'], 'name', $pack['name_ru']);
-    return localize_label($name, 'pack');
+    $name = localize_label($name, 'pack');
+
+    return \App\ListingTranslator::toEnglish($name);
 }
 
 function field_label(array $field): string
@@ -77,9 +79,10 @@ function currency_label(array $good): string
     if ($ru === '') {
         return '';
     }
-    return localize_label(
-        trans_entity('good', (string) $good['id'], 'currency', $ru),
-        (string) ($good['id'] ?? ''),
+    $label = trans_entity('good', (string) $good['id'], 'currency', $ru);
+
+    return \App\ListingTranslator::toEnglish(
+        localize_label($label, (string) ($good['id'] ?? '')),
     );
 }
 

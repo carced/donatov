@@ -33,6 +33,43 @@ function field_label(array $field): string
     return localize_label($label, $field['field_key'] ?? '');
 }
 
+function field_placeholder(array $field): string
+{
+    $placeholder = trim((string) ($field['placeholder'] ?? ''));
+    if ($placeholder === '') {
+        return '';
+    }
+    if (\App\I18n::lang() === 'ru') {
+        return $placeholder;
+    }
+
+    $byKey = placeholder_for_field_key((string) ($field['field_key'] ?? ''));
+    if ($byKey !== null) {
+        return $byKey;
+    }
+
+    $lower = utf8_strtolower($placeholder);
+    $map = [
+        'введите ссылку' => 'placeholder_enter_profile_link',
+        'ссылка на профиль' => 'placeholder_enter_profile_link',
+        'укажите ссылку' => 'placeholder_enter_profile_link',
+        'введите логин' => 'placeholder_enter_login',
+        'введите пароль' => 'placeholder_enter_password',
+        'введите email' => 'placeholder_enter_email',
+        'введите e-mail' => 'placeholder_enter_email',
+        'введите uid' => 'placeholder_enter_uid',
+        'введите id' => 'placeholder_enter_player_id',
+        'введите ник' => 'placeholder_enter_nickname',
+        'введите никнейм' => 'placeholder_enter_nickname',
+        'введите сервер' => 'placeholder_enter_server',
+    ];
+    if (isset($map[$lower])) {
+        return t($map[$lower]);
+    }
+
+    return \App\ListingTranslator::toEnglish($placeholder);
+}
+
 function price_usd(float $amount): string
 {
     return Currency::formatUsd($amount);
@@ -121,6 +158,36 @@ function label_for_field_key(string $fieldKey): ?string
         'player_id' => 'label_player_id',
         'server' => 'label_server',
         'nickname' => 'label_nickname',
+        'profile_link' => 'label_profile_link',
+        'profile' => 'label_profile_link',
+        'link' => 'label_profile_link',
+        'url' => 'label_profile_link',
+    ];
+    $key = utf8_strtolower(trim($fieldKey));
+    if (!isset($map[$key])) {
+        return null;
+    }
+
+    return t($map[$key]);
+}
+
+function placeholder_for_field_key(string $fieldKey): ?string
+{
+    if (\App\I18n::lang() === 'ru' || $fieldKey === '') {
+        return null;
+    }
+    $map = [
+        'login' => 'placeholder_enter_login',
+        'password' => 'placeholder_enter_password',
+        'email' => 'placeholder_enter_email',
+        'uid' => 'placeholder_enter_uid',
+        'player_id' => 'placeholder_enter_player_id',
+        'server' => 'placeholder_enter_server',
+        'nickname' => 'placeholder_enter_nickname',
+        'profile_link' => 'placeholder_enter_profile_link',
+        'profile' => 'placeholder_enter_profile_link',
+        'link' => 'placeholder_enter_profile_link',
+        'url' => 'placeholder_enter_profile_link',
     ];
     $key = utf8_strtolower(trim($fieldKey));
     if (!isset($map[$key])) {
@@ -156,6 +223,9 @@ function localize_label(string $text, string $contextKey = ''): string
         'nickname' => 'label_nickname',
         'ник' => 'label_nickname',
         'никнейм' => 'label_nickname',
+        'ссылка профиля' => 'label_profile_link',
+        'ссылка на профиль' => 'label_profile_link',
+        'profile link' => 'label_profile_link',
     ];
     if (isset($map[$lower])) {
         return t($map[$lower]);
@@ -168,6 +238,9 @@ function localize_label(string $text, string $contextKey = ''): string
     }
     if (utf8_str_contains($trimmed, 'логин') || utf8_str_contains($lower, 'login')) {
         return t('label_login');
+    }
+    if (utf8_str_contains($lower, 'ссылк') && utf8_str_contains($lower, 'проф')) {
+        return t('label_profile_link');
     }
 
     return $text;

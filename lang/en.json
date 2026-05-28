@@ -155,5 +155,14 @@
   "admin_adsense_heading": "Google AdSense",
   "admin_adsense_help": "Paste your AdSense script/snippet. It will be injected into the <head> of all pages.",
   "admin_adsense_label": "AdSense code",
-  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>"
+  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>",
+  "label_profile_link": "Profile link",
+  "placeholder_enter_login": "Enter login",
+  "placeholder_enter_password": "Enter password",
+  "placeholder_enter_email": "Enter email",
+  "placeholder_enter_uid": "Enter UID",
+  "placeholder_enter_player_id": "Enter player ID",
+  "placeholder_enter_server": "Enter server",
+  "placeholder_enter_nickname": "Enter nickname",
+  "placeholder_enter_profile_link": "Enter profile link"
 }

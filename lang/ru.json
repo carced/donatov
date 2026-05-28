@@ -155,5 +155,14 @@
   "admin_adsense_heading": "Google AdSense",
   "admin_adsense_help": "Вставьте ваш скрипт/сниппет AdSense. Он будет добавлен в <head> всех страниц.",
   "admin_adsense_label": "Код AdSense",
-  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>"
+  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>",
+  "label_profile_link": "Ссылка профиля",
+  "placeholder_enter_login": "Введите логин",
+  "placeholder_enter_password": "Введите пароль",
+  "placeholder_enter_email": "Введите email",
+  "placeholder_enter_uid": "Введите UID",
+  "placeholder_enter_player_id": "Введите ID игрока",
+  "placeholder_enter_server": "Введите сервер",
+  "placeholder_enter_nickname": "Введите никнейм",
+  "placeholder_enter_profile_link": "Введите ссылку профиля"
 }

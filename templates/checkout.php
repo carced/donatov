@@ -44,7 +44,7 @@
             <input type="text"
                    id="f_<?= e($field['field_key']) ?>"
                    name="fields[<?= (int)$goodId ?>][<?= e($field['field_key']) ?>]"
-                   placeholder="<?= e($field['placeholder'] ?? '') ?>"
+                   placeholder="<?= e(field_placeholder($field)) ?>"
                    <?= !empty($field['required']) ? 'required' : '' ?>>
         </div>
         <?php endforeach; ?>

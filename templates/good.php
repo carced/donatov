@@ -99,7 +99,7 @@ $minPriceUsd = $minPriceUsd ?? 0;
                                    class="crypto-field-input form-control"
                                    id="crypto_f_<?= e($field['field_key']) ?>"
                                    data-field-key="<?= e($field['field_key']) ?>"
-                                   placeholder="<?= e($field['placeholder'] ?? '') ?>"
+                                   placeholder="<?= e(field_placeholder($field)) ?>"
                                    <?= !empty($field['required']) ? 'required' : '' ?>>
                         </div>
                         <?php endforeach; ?>

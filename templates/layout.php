@@ -3,7 +3,7 @@ require_once __DIR__ . '/helpers.php';
 $lang = \App\I18n::lang();
 $otherLang = $lang === 'ru' ? 'en' : 'ru';
 $seo = $seo ?? [
-    'title' => $siteName ?? 'GameStore',
+    'title' => $siteName ?? 'GameWiwi.com',
     'description' => '',
     'canonical' => \App\Seo::absoluteUrl('/'),
     'robots' => 'index, follow',
@@ -25,6 +25,7 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
     <meta name="theme-color" content="#0f0f14">
     <title><?= e($pageTitle) ?></title>
     <meta name="description" content="<?= e($metaDescription) ?>">
@@ -70,8 +71,7 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
         <header class="site-header">
             <div class="container site-header__inner">
                 <a href="/" class="site-brand" title="<?= e(t('seo_link_home_title')) ?>">
-                    <span class="site-brand__mark" aria-hidden="true"></span>
-                    <span class="site-brand__text"><?= e($siteName) ?></span>
+                    <img src="/assets/logo-gamewiwi.svg" alt="<?= e($siteName) ?>" class="site-brand__logo" width="168" height="34" decoding="async">
                 </a>
 
                 <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">

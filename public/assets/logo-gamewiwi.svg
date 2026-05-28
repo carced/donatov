@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img" aria-label="GameWiwi.com">
+  <defs>
+    <linearGradient id="gw" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="32" height="32" rx="10" fill="url(#gw)"/>
+  <text x="8" y="27" font-family="system-ui,sans-serif" font-size="18" font-weight="800" fill="#fff">G</text>
+  <text x="40" y="27" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="#f4f4f8">
+    Game<tspan fill="url(#gw)">Wiwi</tspan><tspan font-size="14" font-weight="600" fill="#9ca3b8">.com</tspan>
+  </text>
+</svg>

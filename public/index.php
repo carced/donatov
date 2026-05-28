@@ -45,13 +45,22 @@ function servePublicAsset(string $publicDir): bool
 }
 
 $publicDir = __DIR__;
+$bootstrapRoot = is_file(__DIR__ . '/src/AppPaths.php') ? __DIR__ : dirname(__DIR__);
+require_once $bootstrapRoot . '/src/AppPaths.php';
+
+use App\AppPaths;
 if (servePublicAsset($publicDir)) {
     exit;
 }
 
 session_start();
 
-$root = dirname(__DIR__);
+$root = AppPaths::rootFromPublicEntry(__DIR__);
+$reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+if (!AppPaths::isInstalled($root) && !str_contains($reqPath, 'install.php')) {
+    header('Location: /install.php');
+    exit;
+}
 require_once $root . '/src/Config.php';
 require_once $root . '/src/Db.php';
 require_once $root . '/src/Currency.php';
@@ -62,6 +71,7 @@ require_once $root . '/src/OrderService.php';
 require_once $root . '/src/CryptoPayment.php';
 require_once $root . '/src/ReferralService.php';
 require_once $root . '/src/Seo.php';
+require_once $root . '/src/AppPaths.php';
 require_once $root . '/src/GamePopularity.php';
 require_once $root . '/src/GoodName.php';
 require_once $root . '/src/ListingTranslator.php';

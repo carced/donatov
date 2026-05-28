@@ -10,7 +10,7 @@ final class Seo
     public static function forTemplate(string $template, array $data, CatalogRepository $catalog): array
     {
         $lang = I18n::lang();
-        $site = Config::get('APP_NAME', 'GameStore');
+        $site = Config::get('APP_NAME', 'GameWiwi.com');
         $base = self::siteUrl();
 
         $ctx = [

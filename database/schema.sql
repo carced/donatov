@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS settings (
 INSERT INTO settings (`key`, `value`) VALUES
     ('discount_factor', '0.6'),
     ('default_lang', 'ru'),
-    ('site_name', 'GameStore')
+    ('site_name', 'GameWiwi.com')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
 CREATE TABLE IF NOT EXISTS categories (

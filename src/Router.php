@@ -370,7 +370,7 @@ final class Router
 
     private function render(string $template, array $data): void
     {
-        $siteName = Config::get('APP_NAME', 'GameStore');
+        $siteName = Config::get('APP_NAME', 'GameWiwi.com');
         $lang = I18n::lang();
         $catalogRepo = $this->catalog;
         $cartResolved = $this->orders->resolveCart();

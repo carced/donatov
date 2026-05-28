@@ -4,3 +4,5 @@ vendor/
 *.log
 .DS_Store
 public/assets/covers/
+
+storage/install.lock

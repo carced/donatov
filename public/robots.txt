@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /order/
+Disallow: /install.php
+
+Sitemap: https://gamewiwi.com/sitemap.xml

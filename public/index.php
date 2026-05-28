@@ -76,6 +76,7 @@ require_once $root . '/src/GamePopularity.php';
 require_once $root . '/src/GoodName.php';
 require_once $root . '/src/ListingTranslator.php';
 require_once $root . '/src/ProductSeoCopy.php';
+require_once $root . '/src/ProductListingSeo.php';
 require_once $root . '/src/ProductReviews.php';
 require_once $root . '/src/Router.php';
 

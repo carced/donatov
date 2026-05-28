@@ -35,7 +35,7 @@ $minPriceUsd = $minPriceUsd ?? 0;
                 <h2 id="buy-section"><?= e(t('buy')) ?></h2>
                 <div class="good-packs-grid">
                     <?php foreach ($packs as $pack): ?>
-                    <div class="pack<?= $pack['in_stock'] ? '' : ' pack--out' ?>" data-pack-id="<?= (int) $pack['id'] ?>">
+                    <div class="pack<?= $pack['in_stock'] ? '' : ' pack--out' ?>" id="pack-<?= (int) $pack['id'] ?>" data-pack-id="<?= (int) $pack['id'] ?>">
                         <div class="pack-data">
                             <div class="pack-data-inner">
                                 <div class="pack-name"><?= e(pack_name($pack)) ?></div>
@@ -173,6 +173,8 @@ $minPriceUsd = $minPriceUsd ?? 0;
             </section>
 
             <?php include __DIR__ . '/partials/product_reviews.php'; ?>
+
+            <?php include __DIR__ . '/partials/product_listing_seo.php'; ?>
 
             <?php
             $heading = t('seo_related_title');

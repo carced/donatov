@@ -146,5 +146,9 @@
   "search_games_label": "Поиск игр",
   "search_games_placeholder": "Введите название игры…",
   "search_no_results": "Ничего не найдено. Попробуйте другие буквы.",
-  "hero_hype_signup": "Без регистрации"
+  "hero_hype_signup": "Без регистрации",
+  "seo_listing_section_title": "О пополнении :product на этой странице",
+  "seo_listing_packs_heading": "Лоты и пакеты для :product",
+  "seo_listing_related_heading": "Похожие игры для пополнения",
+  "seo_listing_more_packs": "Все пакеты на этой странице"
 }

@@ -3,11 +3,12 @@
 /** @var array|null $good */
 require_once dirname(__DIR__) . '/helpers.php';
 $heading = $heading ?? t('seo_related_title');
+$relatedGoods = array_slice($relatedGoods ?? [], 0, 6);
 ?>
 <aside class="internal-links" aria-labelledby="internal-links-heading">
     <h2 id="internal-links-heading" class="internal-links__title"><?= e($heading) ?></h2>
     <?php if (!empty($relatedGoods)): ?>
-    <div class="catalog-grid catalog-grid--compact catalog-grid--cards">
+    <div class="catalog-grid catalog-grid--compact catalog-grid--related catalog-grid--cards">
         <?php foreach ($relatedGoods as $g): ?>
             <?php include __DIR__ . '/good_card.php'; ?>
         <?php endforeach; ?>

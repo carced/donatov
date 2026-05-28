@@ -146,5 +146,9 @@
   "search_games_label": "Search games",
   "search_games_placeholder": "Type a game name…",
   "search_no_results": "No games match. Try different letters.",
-  "hero_hype_signup": "No sign-up"
+  "hero_hype_signup": "No sign-up",
+  "seo_listing_section_title": "About :product top-ups on this page",
+  "seo_listing_packs_heading": "Lots and packs for :product",
+  "seo_listing_related_heading": "Related games you may also top up",
+  "seo_listing_more_packs": "See all packs on this page"
 }

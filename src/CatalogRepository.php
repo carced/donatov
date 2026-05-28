@@ -172,7 +172,7 @@ final class CatalogRepository
     }
 
 
-    public function relatedGoods(int $goodId, string $categoryId, int $limit = 8): array
+    public function relatedGoods(int $goodId, string $categoryId, int $limit = 6): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT g.* FROM goods g
@@ -184,7 +184,37 @@ final class CatalogRepository
         $stmt->bindValue(2, $goodId, PDO::PARAM_INT);
         $stmt->bindValue(3, $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll() ?: [];
+        $rows = $stmt->fetchAll() ?: [];
+
+        if (count($rows) >= $limit) {
+            return $rows;
+        }
+
+        $exclude = [$goodId];
+        foreach ($rows as $r) {
+            $exclude[] = (int) $r['id'];
+        }
+
+        $need = $limit - count($rows);
+        $placeholders = implode(',', array_fill(0, count($exclude), '?'));
+        $fillSql = "SELECT g.* FROM goods g
+             WHERE g.enabled = 1 AND g.id NOT IN ($placeholders)
+             ORDER BY g.sort_order, g.name_ru
+             LIMIT ?";
+        $fillStmt = $this->pdo->prepare($fillSql);
+        $i = 1;
+        foreach ($exclude as $id) {
+            $fillStmt->bindValue($i++, $id, PDO::PARAM_INT);
+        }
+        $fillStmt->bindValue($i, $need, PDO::PARAM_INT);
+        $fillStmt->execute();
+        $extra = $fillStmt->fetchAll() ?: [];
+        if ($extra !== []) {
+            $extra = GamePopularity::sortGoods($extra, 'popular');
+            $extra = array_slice($extra, 0, $need);
+        }
+
+        return array_merge($rows, $extra);
     }
 
     /** @return list<array{slug: string, updated_at: string}> */

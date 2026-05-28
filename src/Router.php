@@ -162,15 +162,16 @@ final class Router
                 $minPriceUsd = $p;
             }
         }
-        $relatedGoods = $this->catalog->relatedGoods(
+        $relatedGoods = $this->catalog->attachMinPrices($this->catalog->relatedGoods(
             (int) $good['id'],
             (string) $good['category_id'],
-            8,
-        );
+            6,
+        ));
         $productName = I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
         $productReviews = ProductReviews::forGood($good);
         $reviewStats = ProductReviews::aggregate($productReviews);
         $productSeoText = ProductSeoCopy::description($good, (float) $minPriceUsd);
+        $listingSeo = ProductListingSeo::blocks($good, $packs, $relatedGoods, (float) $minPriceUsd);
         $isGoodPage = true;
         $this->render('good', compact(
             'good',
@@ -189,6 +190,7 @@ final class Router
             'productReviews',
             'reviewStats',
             'productSeoText',
+            'listingSeo',
         ));
     }
 

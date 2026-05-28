@@ -1,5 +1,17 @@
 <?php require_once __DIR__ . '/helpers.php'; ?>
 <h1><?= e(t('admin_orders')) ?></h1>
+
+<section class="card-panel" style="margin-bottom:16px;">
+    <h2><?= e(t('admin_adsense_heading')) ?></h2>
+    <p class="text-muted"><?= e(t('admin_adsense_help')) ?></p>
+    <form method="post" action="/admin/settings/adsense">
+        <div class="form-group">
+            <label for="adsense_code"><?= e(t('admin_adsense_label')) ?></label>
+            <textarea id="adsense_code" name="adsense_code" rows="6" class="form-control" placeholder="<?= e(t('admin_adsense_placeholder')) ?>"><?= e($adsenseCode ?? '') ?></textarea>
+        </div>
+        <button type="submit" class="btn"><?= e(t('save')) ?></button>
+    </form>
+</section>
 <table class="checkout-table">
     <thead>
         <tr>

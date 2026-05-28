@@ -150,5 +150,10 @@
   "seo_listing_section_title": "О пополнении :product на этой странице",
   "seo_listing_packs_heading": "Лоты и пакеты для :product",
   "seo_listing_related_heading": "Похожие игры для пополнения",
-  "seo_listing_more_packs": "Все пакеты на этой странице"
+  "seo_listing_more_packs": "Все пакеты на этой странице",
+  "save": "Сохранить",
+  "admin_adsense_heading": "Google AdSense",
+  "admin_adsense_help": "Вставьте ваш скрипт/сниппет AdSense. Он будет добавлен в <head> всех страниц.",
+  "admin_adsense_label": "Код AdSense",
+  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>"
 }

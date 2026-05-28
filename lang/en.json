@@ -150,5 +150,10 @@
   "seo_listing_section_title": "About :product top-ups on this page",
   "seo_listing_packs_heading": "Lots and packs for :product",
   "seo_listing_related_heading": "Related games you may also top up",
-  "seo_listing_more_packs": "See all packs on this page"
+  "seo_listing_more_packs": "See all packs on this page",
+  "save": "Save",
+  "admin_adsense_heading": "Google AdSense",
+  "admin_adsense_help": "Paste your AdSense script/snippet. It will be injected into the <head> of all pages.",
+  "admin_adsense_label": "AdSense code",
+  "admin_adsense_placeholder": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=...\"></script>"
 }

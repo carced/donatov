@@ -65,6 +65,10 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
     <?php foreach ($seo['json_ld'] ?? [] as $block): ?>
     <script type="application/ld+json"><?= json_encode($block, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
     <?php endforeach; ?>
+
+    <?php if (!empty($adsenseCode)): ?>
+    <?= $adsenseCode ?>
+    <?php endif; ?>
 </head>
 <body>
     <div id="app" class="app-shell">

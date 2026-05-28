@@ -115,6 +115,7 @@ final class Router
             '/checkout' => $this->postCheckout(),
             '/buy/confirm' => $this->postBuyConfirm(),
             '/admin/login' => $this->postAdminLogin(),
+            '/admin/settings/adsense' => $this->postAdminAdsense(),
             default => $this->notFound(),
         };
     }
@@ -326,7 +327,8 @@ final class Router
             return;
         }
         $orders = $this->orders->allOrders();
-        $this->render('admin_orders', compact('orders'));
+        $adsenseCode = $this->settingValue('adsense_code') ?? '';
+        $this->render('admin_orders', compact('orders', 'adsenseCode'));
     }
 
     private function postAdminLogin(): void
@@ -338,6 +340,19 @@ final class Router
             return;
         }
         $_SESSION['flash_error'] = 'Invalid password';
+        $this->redirect('/admin');
+    }
+
+    private function postAdminAdsense(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $code = trim((string) ($_POST['adsense_code'] ?? ''));
+        $this->upsertSetting('adsense_code', $code);
+        $_SESSION['flash_success'] = 'AdSense code updated';
         $this->redirect('/admin');
     }
 
@@ -373,6 +388,7 @@ final class Router
     private function render(string $template, array $data): void
     {
         $siteName = Config::get('APP_NAME', 'GameWiwi.com');
+        $adsenseCode = $this->settingValue('adsense_code') ?? '';
         $lang = I18n::lang();
         $catalogRepo = $this->catalog;
         $cartResolved = $this->orders->resolveCart();
@@ -388,6 +404,28 @@ final class Router
         include $this->root . '/templates/' . $template . '.php';
         $content = ob_get_clean();
         include $this->root . '/templates/layout.php';
+    }
+
+
+    private function settingValue(string $key): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT value FROM settings WHERE `key` = ? LIMIT 1');
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return null;
+        }
+
+        return (string) ($row['value'] ?? '');
+    }
+
+    private function upsertSetting(string $key, string $value): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO settings (`key`, `value`) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)'
+        );
+        $stmt->execute([$key, $value]);
     }
 
     private function redirect(string $url): void

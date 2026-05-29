@@ -118,6 +118,7 @@ final class Installer
             $dsn = sprintf('mysql:host=%s;port=%s;charset=utf8mb4', $dbHost, $dbPort);
             $pdo = new PDO($dsn, $dbUser, $dbPass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
             ]);
             $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . str_replace('`', '``', $dbName) . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
             $pdo->exec('USE `' . str_replace('`', '``', $dbName) . '`');
@@ -147,7 +148,11 @@ final class Installer
 
         $importMsg = '';
         if ($importCatalog && is_file(self::appRoot() . '/data/catalog.json')) {
-            $importMsg = self::runCatalogImport();
+            try {
+                $importMsg = self::runCatalogImport();
+            } catch (\Throwable $e) {
+                $importMsg = 'Catalog import failed: ' . $e->getMessage();
+            }
         }
 
         if (!is_dir(self::appRoot() . '/storage')) {
@@ -213,7 +218,11 @@ final class Installer
                 continue;
             }
             try {
-                $pdo->exec($stmt);
+                $result = $pdo->query($stmt);
+                if ($result instanceof \PDOStatement) {
+                    $result->fetchAll();
+                    $result->closeCursor();
+                }
             } catch (PDOException $e) {
                 if (!str_contains($e->getMessage(), 'Duplicate') && !str_contains($e->getMessage(), 'already exists')) {
                     throw $e;

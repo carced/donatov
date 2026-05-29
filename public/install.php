@@ -20,7 +20,11 @@ if (AppPaths::isInstalled($root) && ($_GET['force'] ?? '') !== '1') {
 
 $result = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $result = Installer::install($_POST);
+    try {
+        $result = Installer::install($_POST);
+    } catch (Throwable $e) {
+        $result = ['ok' => false, 'error' => 'Install failed: ' . $e->getMessage()];
+    }
 }
 
 $checks = Installer::requirements();

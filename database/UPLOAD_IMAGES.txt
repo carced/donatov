@@ -1,0 +1,46 @@
+GameWiwi.com — images after SQL import
+=====================================
+
+The SQL file (catalog_seed.sql) only loads DATABASE rows.
+Image files are NOT inside SQL — you must upload them separately.
+
+QUICK FIX (cPanel / FTP)
+------------------------
+1. Download from the repo:
+   database/site_assets_bundle.zip   (~5 MB, everything)
+   OR only:
+   database/covers_bundle.zip         (~4 MB, game thumbnails only)
+
+2. Unzip on your computer.
+
+3. Upload into your site folder so you have:
+
+   public_html/assets/covers/     ← hundreds of .webp files
+   public_html/assets/css/        ← vendor.css, app.css (if missing)
+   public_html/assets/logo-gamewiwi.svg
+   public_html/assets/favicon.svg
+   public_html/assets/placeholder.png
+
+   If your document root IS the public/ folder, upload into:
+   public/assets/...
+
+4. Check one image in the browser:
+   https://YOUR-DOMAIN.com/assets/covers/good-11-1767948674.webp
+   (use any filename from the covers folder)
+
+5. Refresh the homepage (Ctrl+F5).
+
+WHAT EACH PART IS
+-----------------
+- assets/covers/     Game box art on home & catalog
+- assets/logo-gamewiwi.svg, favicon.svg   Site logo & tab icon
+- assets/placeholder.png   Fallback if a cover is missing
+- assets/css/        Extra styles (product page); optional on home
+
+TROUBLESHOOTING
+---------------
+- Broken image icon: covers folder not uploaded or wrong path
+- 404 on /assets/covers/... : files not in document root, or .htaccess blocks /assets
+- Logo missing: upload logo-gamewiwi.svg to assets/
+
+You do NOT need the huge data/assets/covers/ folder (100+ MB) — only public/assets/covers/ from the zip.

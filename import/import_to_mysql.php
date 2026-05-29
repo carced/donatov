@@ -14,6 +14,17 @@ use App\Db;
 use App\Translator;
 
 
+function isPasswordFieldKey(string $key, string $label = ''): bool
+{
+    $key = strtolower(trim($key));
+    if ($key === 'password' || $key === 'pass' || str_contains($key, 'password')) {
+        return true;
+    }
+    $label = strtolower($label);
+
+    return str_contains($label, 'парол') || str_contains($label, 'password');
+}
+
 function normalizeDatetime(?string $value): ?string
 {
     if ($value === null || $value === '') {
@@ -218,10 +229,15 @@ foreach ($catalogItems as $item) {
     );
     $fs = 0;
     foreach ($schemaFields as $key => $field) {
+        $fieldKey = (string) ($field['model'] ?? $key);
+        $fieldLabel = (string) ($field['label'] ?? $key);
+        if (isPasswordFieldKey($fieldKey, $fieldLabel)) {
+            continue;
+        }
         $fieldStmt->execute([
             $gid,
-            $field['model'] ?? $key,
-            $field['label'] ?? $key,
+            $fieldKey,
+            $fieldLabel,
             $field['type'] ?? 'input',
             $field['inputType'] ?? 'string',
             $field['placeholder'] ?? null,
@@ -229,7 +245,7 @@ foreach ($catalogItems as $item) {
             json_encode(array_diff_key($field, ['label' => 1])),
             $fs++,
         ]);
-        upsertTranslation($pdo, 'good_field', $gid . ':' . ($field['model'] ?? $key), 'label', $field['label'] ?? $key);
+        upsertTranslation($pdo, 'good_field', $gid . ':' . $fieldKey, 'label', $fieldLabel);
     }
 
     $pdo->prepare('DELETE FROM pack_groups WHERE good_id = ?')->execute([$gid]);

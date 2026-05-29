@@ -8,6 +8,18 @@ use PDO;
 
 final class CatalogRepository
 {
+    /** @param array<string, mixed> $field */
+    private static function isPasswordField(array $field): bool
+    {
+        $key = strtolower((string) ($field['field_key'] ?? ''));
+        if ($key === 'password' || $key === 'pass' || str_contains($key, 'password')) {
+            return true;
+        }
+        $label = strtolower((string) ($field['label_ru'] ?? ''));
+
+        return str_contains($label, 'парол') || str_contains($label, 'password');
+    }
+
     public function __construct(private PDO $pdo) {}
 
     public function categories(): array
@@ -107,7 +119,9 @@ final class CatalogRepository
     {
         $stmt = $this->pdo->prepare('SELECT * FROM good_fields WHERE good_id = ? ORDER BY sort_order, id');
         $stmt->execute([$goodId]);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll() ?: [];
+
+        return array_values(array_filter($rows, static fn (array $f): bool => !self::isPasswordField($f)));
     }
 
     public function packById(int $packId): ?array

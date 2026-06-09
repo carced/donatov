@@ -20,7 +20,7 @@ INSERT INTO goods (
     NULL,
     1.00,
     '{"source_url": "/rf-online-next"}',
-    2
+    0
 ) ON DUPLICATE KEY UPDATE
     slug = VALUES(slug),
     name_ru = VALUES(name_ru),
@@ -90,3 +90,6 @@ INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value) 
     ('pack', '528:52803', 'name', 'en', 'Crystals 1200 💎'),
     ('pack', '528:52804', 'name', 'en', 'Crystals 2000 💎')
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
+
+UPDATE goods SET sort_order = sort_order + 1 WHERE id != 528 AND sort_order >= 0;
+UPDATE goods SET sort_order = 0 WHERE id = 528;

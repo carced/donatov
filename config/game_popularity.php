@@ -2,6 +2,7 @@
 
 /** Popularity rank (1 = highest). Top slugs aligned with global MAU/revenue 2024–2026. */
 return [
+    'rf-online-next' => 0,
     'roblox-robux' => 1,
     'minecraft' => 2,
     'fortnite-vbucks' => 3,

@@ -116,7 +116,7 @@ INSERT INTO goods (
     'games',
     'pack',
     'https://assets-prd.ignimgs.com/2023/11/16/rf-online-next-button-1700147130890.jpg',
-    '/assets/covers/rf-online-next.jpg',
+    '/assets/covers/good-528-1780975039.webp',
     'Кристаллы',
     1,
     1,

@@ -1558,6 +1558,66 @@ input, select, textarea, .form-control {
     grid-template-columns: 1fr;
   }
 }
+.game-guides-section__list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.game-guides-section__item {
+  margin: 0;
+}
+
+.game-guides-section__link {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.game-guides-section__link:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+}
+
+.game-guides-section__item-title {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.game-guides-section__item-excerpt {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.guide-siblings ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.guide-siblings a {
+  font-weight: 500;
+}
+
+.guide-hub__header {
+  margin-bottom: 1.5rem;
+}
+
+.guide-hub__lead {
+  color: var(--text-muted);
+  max-width: 55ch;
+}
+
 @media (max-width: 480px) {
   .guide-cta__actions {
     flex-direction: column;

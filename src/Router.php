@@ -120,6 +120,7 @@ final class Router
             '/admin/login' => $this->postAdminLogin(),
             '/admin/settings/adsense' => $this->postAdminAdsense(),
             '/admin/guides/save' => $this->postAdminGuideSave(),
+            '/admin/guides/delete' => $this->postAdminGuideDelete(),
             default => $this->notFound(),
         };
     }
@@ -177,10 +178,10 @@ final class Router
         $reviewStats = ProductReviews::aggregate($productReviews);
         $productSeoText = ProductSeoCopy::description($good, (float) $minPriceUsd);
         $listingSeo = ProductListingSeo::blocks($good, $packs, $relatedGoods, (float) $minPriceUsd);
-        $gameGuide = $this->guides->findBySlug($slug);
-        $gameGuideResolved = $gameGuide !== null
-            ? GameGuide::resolveContent($gameGuide, I18n::lang())
-            : null;
+        $gameGuideArticles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($slug, true),
+            I18n::lang(),
+        );
         $isGoodPage = true;
         $this->render('good', compact(
             'good',
@@ -200,8 +201,7 @@ final class Router
             'reviewStats',
             'productSeoText',
             'listingSeo',
-            'gameGuide',
-            'gameGuideResolved',
+            'gameGuideArticles',
         ));
     }
 
@@ -224,16 +224,39 @@ final class Router
                 'good' => $good,
                 'productName' => GoodName::display($good),
                 'excerpt' => GameGuide::excerpt($resolved['content']),
-                'guideUrl' => GameGuide::guideUrl((string) $row['good_slug']),
+                'articleUrl' => GameGuide::guideArticleUrl(
+                    (string) $row['good_slug'],
+                    (string) $row['article_slug'],
+                ),
+                'hubUrl' => GameGuide::guideHubUrl((string) $row['good_slug']),
                 'storeUrl' => GameGuide::storeUrl((string) $row['good_slug']),
             ];
         }
         $this->render('guides_index', compact('items'));
     }
 
-    private function guide(string $slug): void
+    private function guideHub(string $goodSlug): void
     {
-        $guideRow = $this->guides->findBySlug($slug);
+        $good = $this->catalog->goodBySlug($goodSlug);
+        if (!$good) {
+            $this->notFound();
+            return;
+        }
+        $articles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($goodSlug, true),
+            I18n::lang(),
+        );
+        if ($articles === []) {
+            $this->notFound();
+            return;
+        }
+        $productName = GoodName::display($good);
+        $this->render('guide_hub', compact('good', 'articles', 'productName', 'goodSlug'));
+    }
+
+    private function guideArticle(string $goodSlug, string $articleSlug): void
+    {
+        $guideRow = $this->guides->findArticle($goodSlug, $articleSlug);
         if (!$guideRow) {
             $this->notFound();
             return;
@@ -243,7 +266,7 @@ final class Router
             $this->notFound();
             return;
         }
-        $good = $this->catalog->goodBySlug($slug);
+        $good = $this->catalog->goodBySlug($goodSlug);
         if (!$good) {
             $this->notFound();
             return;
@@ -251,6 +274,10 @@ final class Router
         $productName = GoodName::display($good);
         $minPriceUsd = $this->catalog->attachMinPrices([$good])[0]['min_price_usd'] ?? 0.0;
         $guideContentHtml = GameGuide::sanitizeHtml($resolved['content']);
+        $siblingArticles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($goodSlug, true),
+            I18n::lang(),
+        );
         $this->render('guide', compact(
             'guideRow',
             'resolved',
@@ -258,6 +285,9 @@ final class Router
             'productName',
             'minPriceUsd',
             'guideContentHtml',
+            'goodSlug',
+            'articleSlug',
+            'siblingArticles',
         ));
     }
 
@@ -397,7 +427,18 @@ final class Router
         $adminGoods = $this->catalog->catalogGoods(null, null);
         $adminGuides = $this->guides->allForAdmin();
         $editSlug = trim((string) ($_GET['guide'] ?? 'rf-online-next'));
-        $editGuide = $this->guides->findAnyBySlug($editSlug);
+        $articleParam = trim((string) ($_GET['article'] ?? ''));
+        $gameArticles = $this->guides->listForGood($editSlug);
+        $editGuide = null;
+        $isNewArticle = $articleParam === 'new';
+        if ($articleParam !== '' && $articleParam !== 'new' && ctype_digit($articleParam)) {
+            $candidate = $this->guides->findById((int) $articleParam);
+            if ($candidate !== null && (string) $candidate['good_slug'] === $editSlug) {
+                $editGuide = $candidate;
+            }
+        } elseif ($gameArticles !== [] && !$isNewArticle) {
+            $editGuide = $gameArticles[0];
+        }
         $this->render('admin_orders', compact(
             'orders',
             'adsenseCode',
@@ -405,7 +446,10 @@ final class Router
             'adminGuides',
             'editSlug',
             'editGuide',
-        ));
+            'gameArticles',
+            'isNewArticle',
+            'isAdminPage',
+        ) + ['isAdminPage' => true]);
     }
 
     private function postAdminLogin(): void
@@ -452,7 +496,30 @@ final class Router
             return;
         }
 
-        $this->guides->upsert($slug, [
+        $articleSlug = GameGuide::slugify(trim((string) ($_POST['article_slug'] ?? '')));
+        if ($articleSlug === 'article') {
+            $fallbackTitle = trim((string) ($_POST['title_en'] ?? $_POST['title_ru'] ?? ''));
+            if ($fallbackTitle !== '') {
+                $articleSlug = GameGuide::slugify($fallbackTitle);
+            }
+        }
+
+        $articleId = (int) ($_POST['article_id'] ?? 0);
+        if ($articleId > 0 && $this->guides->articleSlugExists($slug, $articleSlug, $articleId)) {
+            $_SESSION['flash_error'] = I18n::t('admin_guide_slug_taken');
+            $this->redirect('/admin?guide=' . rawurlencode($slug) . '&article=' . $articleId);
+            return;
+        }
+        if ($articleId <= 0 && $this->guides->articleSlugExists($slug, $articleSlug)) {
+            $suffix = 2;
+            $base = $articleSlug;
+            while ($this->guides->articleSlugExists($slug, $articleSlug)) {
+                $articleSlug = $base . '-' . $suffix;
+                $suffix++;
+            }
+        }
+
+        $savedId = $this->guides->save($articleId > 0 ? $articleId : null, $slug, $articleSlug, [
             'title_ru' => $_POST['title_ru'] ?? '',
             'title_en' => $_POST['title_en'] ?? '',
             'content_ru' => $_POST['content_ru'] ?? '',
@@ -460,9 +527,30 @@ final class Router
             'meta_description_ru' => $_POST['meta_description_ru'] ?? '',
             'meta_description_en' => $_POST['meta_description_en'] ?? '',
             'enabled' => isset($_POST['enabled']) ? 1 : 0,
+            'sort_order' => (int) ($_POST['sort_order'] ?? 0),
         ]);
         $_SESSION['flash_success'] = I18n::t('admin_guide_saved');
-        $this->redirect('/admin?guide=' . rawurlencode($slug));
+        $this->redirect('/admin?guide=' . rawurlencode($slug) . '&article=' . $savedId);
+    }
+
+    private function postAdminGuideDelete(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $id = (int) ($_POST['article_id'] ?? 0);
+        $slug = trim((string) ($_POST['good_slug'] ?? ''));
+        if ($id > 0) {
+            $row = $this->guides->findById($id);
+            if ($row !== null) {
+                $slug = (string) $row['good_slug'];
+                $this->guides->delete($id);
+                $_SESSION['flash_success'] = I18n::t('admin_guide_deleted');
+            }
+        }
+        $this->redirect('/admin?guide=' . rawurlencode($slug !== '' ? $slug : 'rf-online-next'));
     }
 
     private function robotsTxt(): void
@@ -484,8 +572,12 @@ final class Router
 
     private function dynamic(string $path): void
     {
+        if (preg_match('#^/guide/([a-z0-9\-]+)/([a-z0-9\-]+)$#', $path, $m)) {
+            $this->guideArticle($m[1], $m[2]);
+            return;
+        }
         if (preg_match('#^/guide/([a-z0-9\-]+)$#', $path, $m)) {
-            $this->guide($m[1]);
+            $this->guideHub($m[1]);
             return;
         }
         if (preg_match('#^/g/([a-z0-9\-]+)$#', $path, $m)) {

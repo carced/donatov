@@ -1,0 +1,72 @@
+.admin-guides__toolbar {
+  margin-bottom: 1rem;
+}
+
+.admin-guides__articles {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.admin-guides__articles-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-guides__articles-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-guides__list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.admin-guides__list li.is-active a {
+  font-weight: 700;
+  color: var(--accent-2, #06b6d4);
+}
+
+.admin-guides__meta-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-guides__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.guide-quill-editor {
+  min-height: 220px;
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+}
+
+.guide-quill-editor .ql-editor {
+  min-height: 180px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.guide-quill-editor .ql-toolbar.ql-snow,
+.guide-quill-editor .ql-container.ql-snow {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 900px) {
+  .admin-guides__meta-row {
+    grid-template-columns: 1fr;
+  }
+}

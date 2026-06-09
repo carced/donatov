@@ -30,7 +30,8 @@ final class Seo
             'checkout' => self::checkout($ctx, $site, $base, $lang),
             'order' => self::order($ctx, $data, $site, $base, $lang),
             'referral' => self::referral($ctx, $site, $base, $lang),
-            'guide' => self::guide($ctx, $data, $catalog, $site, $base, $lang),
+            'guide' => self::guideArticle($ctx, $data, $catalog, $site, $base, $lang),
+            'guide_hub' => self::guideHub($ctx, $data, $site, $base, $lang),
             'guides_index' => self::guidesIndex($ctx, $site, $base, $lang),
             '404' => self::notFound($ctx, $site, $base),
             default => $ctx,
@@ -67,7 +68,7 @@ final class Seo
     }
 
     /** @param list<array{slug: string, updated_at?: string}> $goods */
-    /** @param list<array{good_slug: string, updated_at?: string}> $guides */
+    /** @param list<array{good_slug: string, article_slug: string, updated_at?: string}> $guides */
     public static function sitemapXml(array $goods, array $guides, string $lang): string
     {
         $base = self::siteUrl();
@@ -86,12 +87,23 @@ final class Seo
                 'lastmod' => isset($g['updated_at']) ? date('c', strtotime($g['updated_at'])) : $now,
             ];
         }
+        $hubSlugs = [];
         foreach ($guides as $guide) {
+            $goodSlug = (string) $guide['good_slug'];
+            $articleSlug = (string) $guide['article_slug'];
+            $hubSlugs[$goodSlug] = true;
             $urls[] = [
-                'loc' => $base . '/guide/' . rawurlencode((string) $guide['good_slug']),
+                'loc' => $base . '/guide/' . rawurlencode($goodSlug) . '/' . rawurlencode($articleSlug),
                 'priority' => '0.75',
                 'changefreq' => 'weekly',
                 'lastmod' => isset($guide['updated_at']) ? date('c', strtotime($guide['updated_at'])) : $now,
+            ];
+        }
+        foreach (array_keys($hubSlugs) as $hubSlug) {
+            $urls[] = [
+                'loc' => $base . '/guide/' . rawurlencode($hubSlug),
+                'priority' => '0.72',
+                'changefreq' => 'weekly',
             ];
         }
 
@@ -362,7 +374,7 @@ final class Seo
     }
 
     /** @param array<string, mixed> $ctx */
-    private static function guide(
+    private static function guideArticle(
         array $ctx,
         array $data,
         CatalogRepository $catalog,
@@ -373,15 +385,21 @@ final class Seo
         $resolved = $data['resolved'];
         $good = $data['good'];
         $productName = $data['productName'];
-        $slug = (string) $good['slug'];
-        $ctx['title'] = I18n::t('seo_guide_title', ['product' => $productName, 'site' => $site]);
+        $goodSlug = (string) $good['slug'];
+        $articleSlug = (string) ($data['articleSlug'] ?? $data['guideRow']['article_slug'] ?? '');
+        $ctx['title'] = I18n::t('seo_guide_article_title', [
+            'article' => $resolved['title'],
+            'product' => $productName,
+            'site' => $site,
+        ]);
         $ctx['description'] = GameGuide::metaDescription($resolved, $productName, $site);
-        $ctx['canonical'] = self::absoluteUrl('/guide/' . $slug);
+        $ctx['canonical'] = self::absoluteUrl('/guide/' . $goodSlug . '/' . $articleSlug);
         $ctx['og_type'] = 'article';
         $crumbs = [
             ['label' => I18n::t('nav_home'), 'url' => '/'],
             ['label' => I18n::t('nav_guides'), 'url' => '/guides'],
-            ['label' => $productName, 'url' => null],
+            ['label' => $productName, 'url' => '/guide/' . $goodSlug],
+            ['label' => $resolved['title'], 'url' => null],
         ];
         $ctx['breadcrumbs'] = $crumbs;
         $cover = $good['cover_path'] ?? $good['cover_url'] ?? '/assets/placeholder.png';
@@ -399,10 +417,39 @@ final class Seo
             'about' => [
                 '@type' => 'Product',
                 'name' => $productName,
-                'url' => self::absoluteUrl('/g/' . $slug),
+                'url' => self::absoluteUrl('/g/' . $goodSlug),
             ],
         ];
         $ctx['json_ld'][] = self::breadcrumbListSchema($crumbs, $base);
+        return $ctx;
+    }
+
+    /** @param array<string, mixed> $ctx */
+    private static function guideHub(
+        array $ctx,
+        array $data,
+        string $site,
+        string $base,
+        string $lang,
+    ): array {
+        $productName = $data['productName'];
+        $goodSlug = (string) $data['goodSlug'];
+        $ctx['title'] = I18n::t('seo_guide_hub_title', ['product' => $productName, 'site' => $site]);
+        $ctx['description'] = I18n::t('seo_guide_hub_description', ['product' => $productName, 'site' => $site]);
+        $ctx['canonical'] = self::absoluteUrl('/guide/' . $goodSlug);
+        $ctx['breadcrumbs'] = [
+            ['label' => I18n::t('nav_home'), 'url' => '/'],
+            ['label' => I18n::t('nav_guides'), 'url' => '/guides'],
+            ['label' => $productName, 'url' => null],
+        ];
+        $ctx['json_ld'][] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $ctx['title'],
+            'description' => $ctx['description'],
+            'url' => $ctx['canonical'],
+            'inLanguage' => $lang,
+        ];
         return $ctx;
     }
 

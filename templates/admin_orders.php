@@ -5,29 +5,66 @@
     <h2><?= e(t('admin_guides_heading')) ?></h2>
     <p class="text-muted"><?= e(t('admin_guides_help')) ?></p>
 
-    <?php if (!empty($adminGuides)): ?>
-    <ul class="admin-guides__list">
-        <?php foreach ($adminGuides as $gRow): ?>
-        <li>
-            <a href="/admin?guide=<?= e(rawurlencode((string) $gRow['good_slug'])) ?>">
-                <?= e((string) $gRow['good_slug']) ?>
-            </a>
-            <?php if (empty($gRow['enabled'])): ?><span class="text-muted">(<?= e(t('admin_guide_disabled')) ?>)</span><?php endif; ?>
-        </li>
-        <?php endforeach; ?>
-    </ul>
-    <?php endif; ?>
-
-    <form method="post" action="/admin/guides/save" class="admin-guides__form">
+    <form method="get" action="/admin" class="admin-guides__toolbar">
         <div class="form-group">
-            <label for="good_slug"><?= e(t('admin_guide_game')) ?></label>
-            <select id="good_slug" name="good_slug" class="form-control" onchange="window.location='/admin?guide='+encodeURIComponent(this.value)">
+            <label for="guide_game_pick"><?= e(t('admin_guide_game')) ?></label>
+            <select id="guide_game_pick" name="guide" class="form-control" onchange="this.form.submit()">
                 <?php foreach ($adminGoods as $g): ?>
                 <option value="<?= e($g['slug']) ?>" <?= ($editSlug ?? '') === $g['slug'] ? 'selected' : '' ?>>
                     <?= e(good_name($g)) ?> (<?= e($g['slug']) ?>)
                 </option>
                 <?php endforeach; ?>
             </select>
+        </div>
+    </form>
+
+    <div class="admin-guides__articles">
+        <div class="admin-guides__articles-head">
+            <h3><?= e(t('admin_guide_articles_for', ['game' => $editSlug ?? ''])) ?></h3>
+            <a href="/admin?guide=<?= e(rawurlencode((string) ($editSlug ?? ''))) ?>&article=new" class="btn btn-secondary btn-sm">
+                <?= e(t('admin_guide_new')) ?>
+            </a>
+        </div>
+        <?php if (!empty($gameArticles)): ?>
+        <ul class="admin-guides__list">
+            <?php foreach ($gameArticles as $aRow): ?>
+            <?php
+            $aResolved = \App\GameGuide::resolveContent($aRow, 'en') ?? \App\GameGuide::resolveContent($aRow, 'ru');
+            $aTitle = $aResolved['title'] ?? (string) $aRow['article_slug'];
+            ?>
+            <li class="<?= !empty($editGuide['id']) && (int) $editGuide['id'] === (int) $aRow['id'] ? 'is-active' : '' ?>">
+                <a href="/admin?guide=<?= e(rawurlencode((string) $editSlug)) ?>&article=<?= (int) $aRow['id'] ?>">
+                    <?= e($aTitle) ?>
+                </a>
+                <span class="text-muted">/<?= e((string) $aRow['article_slug']) ?></span>
+                <?php if (empty($aRow['enabled'])): ?><span class="text-muted">(<?= e(t('admin_guide_disabled')) ?>)</span><?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+        <?php else: ?>
+        <p class="text-muted"><?= e(t('admin_guide_no_articles')) ?></p>
+        <?php endif; ?>
+    </div>
+
+    <?php if (!empty($isNewArticle) || !empty($editGuide) || empty($gameArticles)): ?>
+    <form method="post" action="/admin/guides/save" class="admin-guides__form" id="admin-guide-form">
+        <input type="hidden" name="good_slug" value="<?= e($editSlug ?? '') ?>">
+        <input type="hidden" name="article_id" value="<?= e((string) ($editGuide['id'] ?? '0')) ?>">
+
+        <div class="admin-guides__meta-row">
+            <div class="form-group">
+                <label for="article_slug"><?= e(t('admin_guide_article_slug')) ?></label>
+                <input type="text" id="article_slug" name="article_slug" class="form-control"
+                       pattern="[a-z0-9\-]+"
+                       value="<?= e($editGuide['article_slug'] ?? '') ?>"
+                       placeholder="how-to-buy-crystals">
+                <small class="text-muted"><?= e(t('admin_guide_article_slug_help')) ?></small>
+            </div>
+            <div class="form-group">
+                <label for="sort_order"><?= e(t('admin_guide_sort')) ?></label>
+                <input type="number" id="sort_order" name="sort_order" class="form-control" min="0"
+                       value="<?= e((string) ($editGuide['sort_order'] ?? '0')) ?>">
+            </div>
         </div>
 
         <div class="admin-guides__lang-grid">
@@ -43,9 +80,9 @@
                     <textarea id="meta_description_ru" name="meta_description_ru" rows="2" class="form-control"><?= e($editGuide['meta_description_ru'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="content_ru"><?= e(t('admin_guide_content')) ?></label>
-                    <textarea id="content_ru" name="content_ru" rows="14" class="form-control admin-guide-editor"
-                              placeholder="<?= e(t('admin_guide_content_hint')) ?>"><?= e($editGuide['content_ru'] ?? '') ?></textarea>
+                    <label><?= e(t('admin_guide_content')) ?></label>
+                    <div class="guide-quill-editor" data-target="content_ru"></div>
+                    <textarea id="content_ru" name="content_ru" class="visually-hidden"><?= e($editGuide['content_ru'] ?? '') ?></textarea>
                 </div>
             </fieldset>
 
@@ -61,16 +98,16 @@
                     <textarea id="meta_description_en" name="meta_description_en" rows="2" class="form-control"><?= e($editGuide['meta_description_en'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="content_en"><?= e(t('admin_guide_content')) ?></label>
-                    <textarea id="content_en" name="content_en" rows="14" class="form-control admin-guide-editor"
-                              placeholder="<?= e(t('admin_guide_content_hint')) ?>"><?= e($editGuide['content_en'] ?? '') ?></textarea>
+                    <label><?= e(t('admin_guide_content')) ?></label>
+                    <div class="guide-quill-editor" data-target="content_en"></div>
+                    <textarea id="content_en" name="content_en" class="visually-hidden"><?= e($editGuide['content_en'] ?? '') ?></textarea>
                 </div>
             </fieldset>
         </div>
 
         <div class="form-group">
             <label>
-                <input type="checkbox" name="enabled" value="1" <?= ($editGuide === null || !empty($editGuide['enabled'])) ? 'checked' : '' ?>>
+                <input type="checkbox" name="enabled" value="1" <?= ($editGuide === null || !empty($editGuide['enabled']) || !empty($isNewArticle)) ? 'checked' : '' ?>>
                 <?= e(t('admin_guide_enabled')) ?>
             </label>
         </div>
@@ -78,14 +115,25 @@
         <?php if (!empty($editGuide) && \App\GameGuide::resolveContent($editGuide, 'en') !== null): ?>
         <p class="text-muted">
             <?= e(t('admin_guide_preview')) ?>:
-            <a href="/guide/<?= e(rawurlencode((string) ($editSlug ?? ''))) ?>" target="_blank" rel="noopener">
-                /guide/<?= e($editSlug ?? '') ?>
+            <a href="<?= e(\App\GameGuide::guideArticleUrl((string) $editSlug, (string) $editGuide['article_slug'])) ?>" target="_blank" rel="noopener">
+                <?= e(\App\GameGuide::guideArticleUrl((string) $editSlug, (string) $editGuide['article_slug'])) ?>
             </a>
         </p>
         <?php endif; ?>
 
-        <button type="submit" class="btn"><?= e(t('admin_guide_save')) ?></button>
+        <div class="admin-guides__actions">
+            <button type="submit" class="btn"><?= e(t('admin_guide_save')) ?></button>
+        </div>
     </form>
+    <?php if (!empty($editGuide['id'])): ?>
+    <form method="post" action="/admin/guides/delete" class="admin-guides__delete-form"
+          onsubmit="return confirm('<?= e(t('admin_guide_delete_confirm')) ?>')">
+        <input type="hidden" name="article_id" value="<?= (int) $editGuide['id'] ?>">
+        <input type="hidden" name="good_slug" value="<?= e($editSlug ?? '') ?>">
+        <button type="submit" class="btn btn-secondary"><?= e(t('admin_guide_delete')) ?></button>
+    </form>
+    <?php endif; ?>
+    <?php endif; ?>
 </section>
 
 <section class="card-panel" style="margin-bottom:16px;">
@@ -123,3 +171,8 @@
     <?php endforeach; ?>
     </tbody>
 </table>
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="/assets/admin-guide-editor.css">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="/assets/admin-guide-editor.js" defer></script>

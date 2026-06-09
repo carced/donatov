@@ -45,8 +45,9 @@ Routes use `/g/{slug}` (not `/good/{slug}`).
 
 ### Game guides
 
-- Public URLs: `/guides` (index), `/guide/{good-slug}` (article)
-- Admin: `/admin` → **Game guides** section (bilingual HTML editors, default game `rf-online-next`)
+- Public URLs: `/guides` (index), `/guide/{good-slug}` (hub), `/guide/{good-slug}/{article-slug}` (article)
+- Admin: `/admin` → **Game guides** — Quill WYSIWYG editors (no HTML), multiple articles per game via **+ New article**
+- Migrations: `game_guides_migration.sql`, then `game_guides_multi_article.sql` on existing DBs
 - DB table: `game_guides` (migration: `database/game_guides_migration.sql`)
 - Language rule: one filled language → shown to everyone; both filled → visitor browser/session language
 - New PHP classes must be `require_once` in `public/index.php` (no Composer autoload)

@@ -89,27 +89,50 @@ $minPriceUsd = $minPriceUsd ?? 0;
                     </div>
                     <?php endif; ?>
 
+                    <?php
+                    $hasEmailField = false;
+                    foreach ($fields as $field) {
+                        if (($field['field_key'] ?? '') === 'email') {
+                            $hasEmailField = true;
+                            break;
+                        }
+                    }
+                    ?>
                     <?php if ($fields): ?>
                     <div class="crypto-player-fields">
                         <h3 class="visually-hidden"><?= e(t('player_info')) ?></h3>
                         <?php foreach ($fields as $field): ?>
                         <div class="form-group">
                             <label for="crypto_f_<?= e($field['field_key']) ?>"><?= e(field_label($field)) ?></label>
-                            <input type="text"
+                            <?php if (($field['field_type'] ?? 'input') === 'select'): ?>
+                            <select class="crypto-field-input form-control"
+                                    id="crypto_f_<?= e($field['field_key']) ?>"
+                                    data-field-key="<?= e($field['field_key']) ?>"
+                                    <?= !empty($field['required']) ? 'required' : '' ?>>
+                                <option value=""><?= e(field_placeholder($field) ?: t('select_option')) ?></option>
+                                <?php foreach (field_options($field) as $option): ?>
+                                <option value="<?= e($option['id']) ?>"><?= e($option['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php else: ?>
+                            <input type="<?= e(field_input_type($field)) ?>"
                                    class="crypto-field-input form-control"
                                    id="crypto_f_<?= e($field['field_key']) ?>"
                                    data-field-key="<?= e($field['field_key']) ?>"
                                    placeholder="<?= e(field_placeholder($field)) ?>"
                                    <?= !empty($field['required']) ? 'required' : '' ?>>
+                            <?php endif; ?>
                         </div>
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
 
+                    <?php if (!$hasEmailField): ?>
                     <div class="form-group">
                         <label for="crypto_email"><?= e(t('email')) ?> <small class="text-muted">(<?= e(t('optional')) ?>)</small></label>
                         <input type="email" id="crypto_email" class="form-control" name="email" autocomplete="email">
                     </div>
+                    <?php endif; ?>
 
                     <div class="crypto-wallet-grid" role="group" aria-label="<?= e(t('crypto_payment_title')) ?>">
                         <?php foreach ($cryptoWallets as $wallet): ?>

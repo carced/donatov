@@ -33,6 +33,35 @@ function field_label(array $field): string
     return localize_label($label, $field['field_key'] ?? '');
 }
 
+/** @return list<array{id: string, name: string}> */
+function field_options(array $field): array
+{
+    $raw = $field['validation_json'] ?? null;
+    $decoded = is_string($raw) ? json_decode($raw, true) : $raw;
+    if (!is_array($decoded)) {
+        return [];
+    }
+    $options = [];
+    foreach ($decoded['values'] ?? [] as $value) {
+        if (!is_array($value) || !isset($value['id'], $value['name'])) {
+            continue;
+        }
+        $options[] = [
+            'id' => (string) $value['id'],
+            'name' => (string) $value['name'],
+        ];
+    }
+
+    return $options;
+}
+
+function field_input_type(array $field): string
+{
+    $inputType = (string) ($field['input_type'] ?? 'string');
+
+    return $inputType === 'email' ? 'email' : 'text';
+}
+
 function field_placeholder(array $field): string
 {
     $placeholder = trim((string) ($field['placeholder'] ?? ''));
@@ -157,6 +186,7 @@ function label_for_field_key(string $fieldKey): ?string
         'uid' => 'label_uid',
         'player_id' => 'label_player_id',
         'server' => 'label_server',
+        'region' => 'label_region',
         'nickname' => 'label_nickname',
         'profile_link' => 'label_profile_link',
         'profile' => 'label_profile_link',
@@ -220,6 +250,8 @@ function localize_label(string $text, string $contextKey = ''): string
         'id' => 'label_player_id',
         'player id' => 'label_player_id',
         'server' => 'label_server',
+        'region' => 'label_region',
+        'регион' => 'label_region',
         'nickname' => 'label_nickname',
         'ник' => 'label_nickname',
         'никнейм' => 'label_nickname',

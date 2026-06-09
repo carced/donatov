@@ -41,11 +41,24 @@
         <?php foreach ($goodFields as $field): ?>
         <div class="form-group">
             <label for="f_<?= e($field['field_key']) ?>"><?= e(field_label($field)) ?></label>
-            <input type="text"
+            <?php if (($field['field_type'] ?? 'input') === 'select'): ?>
+            <select id="f_<?= e($field['field_key']) ?>"
+                    class="form-control"
+                    name="fields[<?= (int)$goodId ?>][<?= e($field['field_key']) ?>]"
+                    <?= !empty($field['required']) ? 'required' : '' ?>>
+                <option value=""><?= e(field_placeholder($field) ?: t('select_option')) ?></option>
+                <?php foreach (field_options($field) as $option): ?>
+                <option value="<?= e($option['id']) ?>"><?= e($option['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?php else: ?>
+            <input type="<?= e(field_input_type($field)) ?>"
                    id="f_<?= e($field['field_key']) ?>"
+                   class="form-control"
                    name="fields[<?= (int)$goodId ?>][<?= e($field['field_key']) ?>]"
                    placeholder="<?= e(field_placeholder($field)) ?>"
                    <?= !empty($field['required']) ? 'required' : '' ?>>
+            <?php endif; ?>
         </div>
         <?php endforeach; ?>
         <?php endif; ?>

@@ -1,0 +1,648 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use PDO;
+
+final class Router
+{
+    private CatalogRepository $catalog;
+    private GuideRepository $guides;
+    private OrderService $orders;
+
+    public function __construct(
+        private PDO $pdo,
+        private string $root,
+    ) {
+        $this->catalog = new CatalogRepository($pdo);
+        $this->guides = new GuideRepository($pdo);
+        $this->orders = new OrderService($pdo, $this->catalog);
+    }
+
+    public function dispatch(string $method, string $uri): void
+    {
+        $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $path = rtrim($path, '/') ?: '/';
+        $query = [];
+        parse_str(parse_url($uri, PHP_URL_QUERY) ?? '', $query);
+
+        if (isset($query['lang']) && in_array($query['lang'], ['ru', 'en'], true)) {
+            $_SESSION['lang'] = $query['lang'];
+        }
+
+        if (empty($_SESSION['lang'])) {
+            $detected = $this->detectLangFromBrowser();
+            $_SESSION['lang'] = $detected ?? Config::get('DEFAULT_LANG', 'ru');
+        }
+
+        $lang = $_SESSION['lang'] ?? Config::get('DEFAULT_LANG', 'ru');
+        I18n::init($this->pdo, $lang);
+
+        ReferralService::handleIncomingRef($this->pdo, $query, $path);
+        ReferralService::tryRestoreFromCookie($this->pdo);
+
+        if ($method === 'POST') {
+            $this->handlePost($path);
+            return;
+        }
+
+        match ($path) {
+            '/' => $this->home(),
+            '/catalog' => $this->catalog($query),
+            '/checkout' => $this->checkout(),
+            '/cart/remove' => $this->getCartRemove($query),
+            '/admin' => $this->admin(),
+            '/referral' => $this->referral(),
+            '/referral/dashboard' => $this->referral(),
+            '/guides' => $this->guidesIndex(),
+            '/sitemap.xml' => $this->sitemap(),
+            '/robots.txt' => $this->robotsTxt(),
+            default => $this->dynamic($path),
+        };
+    }
+
+
+    private function detectLangFromBrowser(): ?string
+    {
+        $header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $parts = array_filter(array_map('trim', explode(',', (string) $header)));
+        if ($parts === []) {
+            return null;
+        }
+
+        $best = null;
+        $bestQ = -1.0;
+        foreach ($parts as $part) {
+            $langTag = strtolower($part);
+            $q = 1.0;
+
+            if (str_contains($part, ';')) {
+                [$langTag, $params] = array_pad(explode(';', $part, 2), 2, '');
+                if (preg_match('/q=([0-9.]+)/', $params, $m)) {
+                    $q = (float) $m[1];
+                }
+            }
+
+            $langTag = trim($langTag);
+            if ($langTag === '') {
+                continue;
+            }
+
+            if (str_starts_with($langTag, 'en')) {
+                if ($q > $bestQ) {
+                    $bestQ = $q;
+                    $best = 'en';
+                }
+                continue;
+            }
+
+            if (str_starts_with($langTag, 'ru')) {
+                if ($q > $bestQ) {
+                    $bestQ = $q;
+                    $best = 'ru';
+                }
+                continue;
+            }
+        }
+
+        return $best;
+    }
+
+    private function handlePost(string $path): void
+    {
+        match ($path) {
+            '/cart/add' => $this->postCartAdd(),
+            '/cart/remove' => $this->postCartRemove(),
+            '/checkout' => $this->postCheckout(),
+            '/buy/confirm' => $this->postBuyConfirm(),
+            '/admin/login' => $this->postAdminLogin(),
+            '/admin/settings/adsense' => $this->postAdminAdsense(),
+            '/admin/guides/save' => $this->postAdminGuideSave(),
+            '/admin/guides/delete' => $this->postAdminGuideDelete(),
+            default => $this->notFound(),
+        };
+    }
+
+    private function home(): void
+    {
+        $sort = trim((string) ($_GET['sort'] ?? 'popular'));
+        $allowed = ['popular', 'name_asc', 'name_desc'];
+        if (!in_array($sort, $allowed, true)) {
+            $sort = 'popular';
+        }
+        $goods = $this->catalog->attachMinPrices($this->catalog->homeGoods($sort));
+        $refTracked = isset($_GET['ref_tracked']);
+        $this->render('home', compact('goods', 'refTracked', 'sort'));
+    }
+
+    private function catalog(array $query): void
+    {
+        $categoryId = $query['category'] ?? null;
+        $tagId = $query['tag'] ?? null;
+        $categories = $this->catalog->categories();
+        $goods = $this->catalog->attachMinPrices($this->catalog->catalogGoods($categoryId, $tagId));
+        $this->render('catalog', compact('categories', 'goods', 'categoryId', 'tagId'));
+    }
+
+    private function good(string $slug): void
+    {
+        $good = $this->catalog->goodBySlug($slug);
+        if (!$good) {
+            $this->notFound();
+            return;
+        }
+        $content = $this->catalog->goodContent((int) $good['id']);
+        $packs = $this->catalog->packsForGood((int) $good['id']);
+        $groups = $this->catalog->packGroups((int) $good['id']);
+        $fields = $this->catalog->fieldsForGood((int) $good['id']);
+        $cryptoWallets = CryptoPayment::wallets();
+        $cryptoRates = CryptoPayment::usdPrices();
+        $ref_balance = ReferralService::loggedInBalance($this->pdo);
+        $ref_logged = ReferralService::isLoggedIn();
+        $minPriceUsd = 0.0;
+        foreach ($packs as $pack) {
+            $p = (float) $pack['price_usd'];
+            if ($p > 0 && ($minPriceUsd === 0.0 || $p < $minPriceUsd)) {
+                $minPriceUsd = $p;
+            }
+        }
+        $relatedGoods = $this->catalog->attachMinPrices($this->catalog->relatedGoods(
+            (int) $good['id'],
+            (string) $good['category_id'],
+            6,
+        ));
+        $productName = I18n::transEntity('good', (string) $good['id'], 'name', $good['name_ru']);
+        $productReviews = ProductReviews::forGood($good);
+        $reviewStats = ProductReviews::aggregate($productReviews);
+        $productSeoText = ProductSeoCopy::description($good, (float) $minPriceUsd);
+        $listingSeo = ProductListingSeo::blocks($good, $packs, $relatedGoods, (float) $minPriceUsd);
+        $gameGuideArticles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($slug, true),
+            I18n::lang(),
+        );
+        $isGoodPage = true;
+        $this->render('good', compact(
+            'good',
+            'content',
+            'packs',
+            'groups',
+            'fields',
+            'cryptoWallets',
+            'cryptoRates',
+            'ref_balance',
+            'ref_logged',
+            'isGoodPage',
+            'minPriceUsd',
+            'relatedGoods',
+            'productName',
+            'productReviews',
+            'reviewStats',
+            'productSeoText',
+            'listingSeo',
+            'gameGuideArticles',
+        ));
+    }
+
+    private function guidesIndex(): void
+    {
+        $guideRows = $this->guides->allEnabled();
+        $items = [];
+        foreach ($guideRows as $row) {
+            $resolved = GameGuide::resolveContent($row, I18n::lang());
+            if ($resolved === null) {
+                continue;
+            }
+            $good = $this->catalog->goodBySlug((string) $row['good_slug']);
+            if (!$good) {
+                continue;
+            }
+            $items[] = [
+                'guide' => $row,
+                'resolved' => $resolved,
+                'good' => $good,
+                'productName' => GoodName::display($good),
+                'excerpt' => GameGuide::excerpt($resolved['content']),
+                'articleUrl' => GameGuide::guideArticleUrl(
+                    (string) $row['good_slug'],
+                    (string) $row['article_slug'],
+                ),
+                'hubUrl' => GameGuide::guideHubUrl((string) $row['good_slug']),
+                'storeUrl' => GameGuide::storeUrl((string) $row['good_slug']),
+            ];
+        }
+        $this->render('guides_index', compact('items'));
+    }
+
+    private function guideHub(string $goodSlug): void
+    {
+        $good = $this->catalog->goodBySlug($goodSlug);
+        if (!$good) {
+            $this->notFound();
+            return;
+        }
+        $articles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($goodSlug, true),
+            I18n::lang(),
+        );
+        if ($articles === []) {
+            $this->notFound();
+            return;
+        }
+        $productName = GoodName::display($good);
+        $this->render('guide_hub', compact('good', 'articles', 'productName', 'goodSlug'));
+    }
+
+    private function guideArticle(string $goodSlug, string $articleSlug): void
+    {
+        $guideRow = $this->guides->findArticle($goodSlug, $articleSlug);
+        if (!$guideRow) {
+            $this->notFound();
+            return;
+        }
+        $resolved = GameGuide::resolveContent($guideRow, I18n::lang());
+        if ($resolved === null) {
+            $this->notFound();
+            return;
+        }
+        $good = $this->catalog->goodBySlug($goodSlug);
+        if (!$good) {
+            $this->notFound();
+            return;
+        }
+        $productName = GoodName::display($good);
+        $minPriceUsd = $this->catalog->attachMinPrices([$good])[0]['min_price_usd'] ?? 0.0;
+        $guideContentHtml = GameGuide::sanitizeHtml($resolved['content']);
+        $siblingArticles = GameGuide::resolvedArticlesForGood(
+            $this->guides->listForGood($goodSlug, true),
+            I18n::lang(),
+        );
+        $this->render('guide', compact(
+            'guideRow',
+            'resolved',
+            'good',
+            'productName',
+            'minPriceUsd',
+            'guideContentHtml',
+            'goodSlug',
+            'articleSlug',
+            'siblingArticles',
+        ));
+    }
+
+    private function referral(): void
+    {
+        $account = ReferralService::ensureOwnAccount($this->pdo);
+        $referralUrl = ReferralService::referralUrl($account['code']);
+        $recentClicks = ReferralService::recentClicks($this->pdo, (int) $account['id']);
+        $earnPerClick = ReferralService::EARN_PER_CLICK;
+        $this->render('referral', compact('account', 'referralUrl', 'recentClicks', 'earnPerClick'));
+    }
+
+    private function checkout(): void
+    {
+        $resolved = $this->orders->resolveCart();
+        $paymentMethods = $this->catalog->paymentMethods();
+        $fieldsByGood = [];
+        foreach (array_keys($resolved['goods']) as $goodId) {
+            $fieldsByGood[$goodId] = $this->catalog->fieldsForGood((int) $goodId);
+        }
+        $cart = $this->orders->getCart();
+        $this->render('checkout', compact('resolved', 'paymentMethods', 'fieldsByGood', 'cart'));
+    }
+
+    private function orderView(int $id): void
+    {
+        $order = $this->orders->orderById($id);
+        if (!$order) {
+            $this->notFound();
+            return;
+        }
+        $this->render('order', compact('order'));
+    }
+
+    private function postCartAdd(): void
+    {
+        $packId = (int) ($_POST['pack_id'] ?? 0);
+        $qty = max(1, (int) ($_POST['qty'] ?? 1));
+        if ($packId > 0) {
+            $this->orders->addPack($packId, $qty);
+        }
+        $redirect = $_POST['redirect'] ?? '/checkout';
+        $this->redirect($redirect);
+    }
+
+    private function postCartRemove(): void
+    {
+        $this->removePackFromRequest($_POST['pack_id'] ?? null);
+    }
+
+    private function getCartRemove(array $query): void
+    {
+        $this->removePackFromRequest($query['pack_id'] ?? null);
+    }
+
+    private function removePackFromRequest(mixed $packId): void
+    {
+        $id = (int) $packId;
+        if ($id > 0) {
+            $this->orders->removePack($id);
+        }
+        $this->redirect('/checkout');
+    }
+
+
+    private function postBuyConfirm(): void
+    {
+        $packId = (int) ($_POST['pack_id'] ?? 0);
+        $cryptoId = trim((string) ($_POST['crypto_id'] ?? ''));
+        $cryptoAmount = trim((string) ($_POST['crypto_amount'] ?? ''));
+        $email = trim($_POST['email'] ?? '') ?: null;
+        $useReferral = !empty($_POST['use_referral_balance']) && $_POST['use_referral_balance'] !== '0';
+
+        $fieldValues = [];
+        $goodId = (int) ($_POST['good_id'] ?? 0);
+        if ($goodId > 0 && is_array($_POST['fields'] ?? null)) {
+            $fieldValues[$goodId] = array_map('trim', $_POST['fields']);
+        }
+
+        try {
+            $orderId = $this->orders->createCryptoOrder(
+                $packId,
+                I18n::lang(),
+                $useReferral ? null : ($cryptoId !== '' ? $cryptoId : null),
+                $useReferral ? null : ($cryptoAmount !== '' ? $cryptoAmount : null),
+                $email,
+                $fieldValues,
+                $useReferral,
+            );
+            $this->redirect('/order/' . $orderId);
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            $slug = trim((string) ($_POST['good_slug'] ?? ''));
+            $this->redirect($slug !== '' ? '/g/' . $slug . '#crypto-payment' : '/');
+        }
+    }
+
+    private function postCheckout(): void
+    {
+        $fieldValues = [];
+        foreach ($_POST['fields'] ?? [] as $goodId => $fields) {
+            if (!is_array($fields)) {
+                continue;
+            }
+            $fieldValues[(int) $goodId] = array_map('trim', $fields);
+            $this->orders->setGoodFields((int) $goodId, $fieldValues[(int) $goodId]);
+        }
+        $cartFields = $this->orders->getCart()['fields'] ?? [];
+        foreach ($cartFields as $gid => $fields) {
+            if (!isset($fieldValues[(int) $gid])) {
+                $fieldValues[(int) $gid] = $fields;
+            }
+        }
+
+        try {
+            $orderId = $this->orders->createOrder(
+                I18n::lang(),
+                isset($_POST['payment_method_id']) ? (int) $_POST['payment_method_id'] : null,
+                trim($_POST['email'] ?? '') ?: null,
+                $fieldValues,
+            );
+            $this->redirect('/order/' . $orderId);
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+            $this->redirect('/checkout');
+        }
+    }
+
+    private function admin(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->render('admin_login', []);
+            return;
+        }
+        $orders = $this->orders->allOrders();
+        $adsenseCode = $this->settingValue('adsense_code') ?? '';
+        $adminGoods = $this->catalog->catalogGoods(null, null);
+        $adminGuides = $this->guides->allForAdmin();
+        $editSlug = trim((string) ($_GET['guide'] ?? 'rf-online-next'));
+        $articleParam = trim((string) ($_GET['article'] ?? ''));
+        $gameArticles = $this->guides->listForGood($editSlug);
+        $editGuide = null;
+        $isNewArticle = $articleParam === 'new';
+        if ($articleParam !== '' && $articleParam !== 'new' && ctype_digit($articleParam)) {
+            $candidate = $this->guides->findById((int) $articleParam);
+            if ($candidate !== null && (string) $candidate['good_slug'] === $editSlug) {
+                $editGuide = $candidate;
+            }
+        } elseif ($gameArticles !== [] && !$isNewArticle) {
+            $editGuide = $gameArticles[0];
+        }
+        $this->render('admin_orders', compact(
+            'orders',
+            'adsenseCode',
+            'adminGoods',
+            'adminGuides',
+            'editSlug',
+            'editGuide',
+            'gameArticles',
+            'isNewArticle',
+            'isAdminPage',
+        ) + ['isAdminPage' => true]);
+    }
+
+    private function postAdminLogin(): void
+    {
+        $pass = Config::get('ADMIN_PASSWORD', 'changeme');
+        if (($_POST['password'] ?? '') === $pass) {
+            $_SESSION['admin'] = true;
+            $this->redirect('/admin');
+            return;
+        }
+        $_SESSION['flash_error'] = 'Invalid password';
+        $this->redirect('/admin');
+    }
+
+    private function postAdminAdsense(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $code = trim((string) ($_POST['adsense_code'] ?? ''));
+        $this->upsertSetting('adsense_code', $code);
+        $_SESSION['flash_success'] = 'AdSense code updated';
+        $this->redirect('/admin');
+    }
+
+    private function postAdminGuideSave(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $slug = trim((string) ($_POST['good_slug'] ?? ''));
+        if ($slug === '' || !preg_match('/^[a-z0-9\-]+$/', $slug)) {
+            $_SESSION['flash_error'] = 'Invalid game slug';
+            $this->redirect('/admin');
+            return;
+        }
+        if ($this->catalog->goodBySlug($slug) === null) {
+            $_SESSION['flash_error'] = 'Game not found for slug: ' . $slug;
+            $this->redirect('/admin?guide=' . rawurlencode($slug));
+            return;
+        }
+
+        $articleSlug = GameGuide::slugify(trim((string) ($_POST['article_slug'] ?? '')));
+        if ($articleSlug === 'article') {
+            $fallbackTitle = trim((string) ($_POST['title_en'] ?? $_POST['title_ru'] ?? ''));
+            if ($fallbackTitle !== '') {
+                $articleSlug = GameGuide::slugify($fallbackTitle);
+            }
+        }
+
+        $articleId = (int) ($_POST['article_id'] ?? 0);
+        if ($articleId > 0 && $this->guides->articleSlugExists($slug, $articleSlug, $articleId)) {
+            $_SESSION['flash_error'] = I18n::t('admin_guide_slug_taken');
+            $this->redirect('/admin?guide=' . rawurlencode($slug) . '&article=' . $articleId);
+            return;
+        }
+        if ($articleId <= 0 && $this->guides->articleSlugExists($slug, $articleSlug)) {
+            $suffix = 2;
+            $base = $articleSlug;
+            while ($this->guides->articleSlugExists($slug, $articleSlug)) {
+                $articleSlug = $base . '-' . $suffix;
+                $suffix++;
+            }
+        }
+
+        $savedId = $this->guides->save($articleId > 0 ? $articleId : null, $slug, $articleSlug, [
+            'title_ru' => $_POST['title_ru'] ?? '',
+            'title_en' => $_POST['title_en'] ?? '',
+            'content_ru' => $_POST['content_ru'] ?? '',
+            'content_en' => $_POST['content_en'] ?? '',
+            'meta_description_ru' => $_POST['meta_description_ru'] ?? '',
+            'meta_description_en' => $_POST['meta_description_en'] ?? '',
+            'enabled' => isset($_POST['enabled']) ? 1 : 0,
+            'sort_order' => (int) ($_POST['sort_order'] ?? 0),
+        ]);
+        $_SESSION['flash_success'] = I18n::t('admin_guide_saved');
+        $this->redirect('/admin?guide=' . rawurlencode($slug) . '&article=' . $savedId);
+    }
+
+    private function postAdminGuideDelete(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $id = (int) ($_POST['article_id'] ?? 0);
+        $slug = trim((string) ($_POST['good_slug'] ?? ''));
+        if ($id > 0) {
+            $row = $this->guides->findById($id);
+            if ($row !== null) {
+                $slug = (string) $row['good_slug'];
+                $this->guides->delete($id);
+                $_SESSION['flash_success'] = I18n::t('admin_guide_deleted');
+            }
+        }
+        $this->redirect('/admin?guide=' . rawurlencode($slug !== '' ? $slug : 'rf-online-next'));
+    }
+
+    private function robotsTxt(): void
+    {
+        $base = Seo::siteUrl();
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /order/\nDisallow: /checkout\n\nSitemap: {$base}/sitemap.xml\n";
+        exit;
+    }
+
+    private function sitemap(): void
+    {
+        $goods = $this->catalog->allGoodsForSitemap();
+        $guideSlugs = $this->guides->allForSitemap();
+        header('Content-Type: application/xml; charset=utf-8');
+        echo Seo::sitemapXml($goods, $guideSlugs, I18n::lang());
+        exit;
+    }
+
+    private function dynamic(string $path): void
+    {
+        if (preg_match('#^/guide/([a-z0-9\-]+)/([a-z0-9\-]+)$#', $path, $m)) {
+            $this->guideArticle($m[1], $m[2]);
+            return;
+        }
+        if (preg_match('#^/guide/([a-z0-9\-]+)$#', $path, $m)) {
+            $this->guideHub($m[1]);
+            return;
+        }
+        if (preg_match('#^/g/([a-z0-9\-]+)$#', $path, $m)) {
+            $this->good($m[1]);
+            return;
+        }
+        if (preg_match('#^/order/(\d+)$#', $path, $m)) {
+            $this->orderView((int) $m[1]);
+            return;
+        }
+        $this->notFound();
+    }
+
+    private function render(string $template, array $data): void
+    {
+        $siteName = Config::get('APP_NAME', 'GameWiwi.com');
+        $adsenseCode = $this->settingValue('adsense_code') ?? '';
+        $lang = I18n::lang();
+        $catalogRepo = $this->catalog;
+        $cartResolved = $this->orders->resolveCart();
+        $flashError = $_SESSION['flash_error'] ?? null;
+        $flashSuccess = $_SESSION['flash_success'] ?? null;
+        unset($_SESSION['flash_error'], $_SESSION['flash_success']);
+        $data['isGoodPage'] = $data['isGoodPage'] ?? false;
+        $seo = Seo::forTemplate($template, $data, $this->catalog);
+        $footerLinks = Seo::footerLinks($this->catalog);
+        extract($data);
+        ob_start();
+        require_once $this->root . '/templates/helpers.php';
+        include $this->root . '/templates/' . $template . '.php';
+        $content = ob_get_clean();
+        include $this->root . '/templates/layout.php';
+    }
+
+
+    private function settingValue(string $key): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT value FROM settings WHERE `key` = ? LIMIT 1');
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return null;
+        }
+
+        return (string) ($row['value'] ?? '');
+    }
+
+    private function upsertSetting(string $key, string $value): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO settings (`key`, `value`) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)'
+        );
+        $stmt->execute([$key, $value]);
+    }
+
+    private function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
+    }
+
+    private function notFound(): void
+    {
+        http_response_code(404);
+        $this->render('404', []);
+    }
+}

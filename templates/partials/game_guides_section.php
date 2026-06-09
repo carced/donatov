@@ -23,9 +23,4 @@ $hubUrl = \App\GameGuide::guideHubUrl($guideSlug);
         </li>
         <?php endforeach; ?>
     </ul>
-
-    <?php
-    $guideCtaVariant = 'compact';
-    include __DIR__ . '/partials/guide_cta.php';
-    ?>
 </section>

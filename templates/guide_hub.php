@@ -3,9 +3,6 @@
     <header class="guide-hub__header">
         <h1><?= e(t('guide_hub_title', ['product' => $productName])) ?></h1>
         <p class="guide-hub__lead"><?= e(t('guide_hub_lead', ['product' => $productName])) ?></p>
-        <a href="<?= e(\App\GameGuide::storeUrl($goodSlug)) ?>" class="btn btn-primary">
-            <?= e(t('guide_cta_buy', ['product' => $productName])) ?>
-        </a>
     </header>
 
     <div class="guides-index__grid">
@@ -23,10 +20,4 @@
         </article>
         <?php endforeach; ?>
     </div>
-
-    <?php
-    $guideSlug = $goodSlug;
-    $guideCtaVariant = 'hero';
-    include __DIR__ . '/partials/guide_cta.php';
-    ?>
 </section>

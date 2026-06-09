@@ -88,6 +88,7 @@ $siteCssPath = dirname(__DIR__) . '/public/assets/site.css';
                 <nav class="site-nav" id="site-nav" aria-label="<?= e(t('seo_main_nav')) ?>">
                     <a href="/" class="site-nav__link"><?= e(t('nav_home')) ?></a>
                     <a href="/catalog" class="site-nav__link"><?= e(t('nav_catalog')) ?></a>
+                    <a href="/guides" class="site-nav__link"><?= e(t('nav_guides')) ?></a>
                     <a href="/referral" class="site-nav__link"><?= e(t('nav_referral')) ?></a>
                     <a href="<?= e(lang_url(\App\Seo::currentPath(), $otherLang)) ?>" class="site-nav__link site-nav__link--lang" hreflang="<?= e($otherLang) ?>">
                         <?= $otherLang === 'en' ? 'EN' : 'RU' ?>

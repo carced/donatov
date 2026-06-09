@@ -62,6 +62,36 @@ function field_input_type(array $field): string
     return $inputType === 'email' ? 'email' : 'text';
 }
 
+function guide_cta_markup(string $productName, string $guideSlug, string $variant = 'inline'): string
+{
+    ob_start();
+    $guideCtaVariant = $variant;
+    include __DIR__ . '/partials/guide_cta.php';
+
+    return (string) ob_get_clean();
+}
+
+function guide_html_with_ctas(string $html, string $productName, string $guideSlug): string
+{
+    if (trim($html) === '') {
+        return '';
+    }
+
+    $count = 0;
+    $withSectionCtas = preg_replace_callback(
+        '/<\/h2>/i',
+        static function (array $matches) use (&$count, $productName, $guideSlug) {
+            $count++;
+            $cta = guide_cta_markup($productName, $guideSlug, 'inline');
+
+            return '</h2>' . $cta;
+        },
+        $html,
+    );
+
+    return $withSectionCtas ?? $html;
+}
+
 function field_placeholder(array $field): string
 {
     $placeholder = trim((string) ($field['placeholder'] ?? ''));

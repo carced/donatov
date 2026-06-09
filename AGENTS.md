@@ -42,3 +42,11 @@ docker compose exec web bash -c 'find /var/www/html -name "*.php" | while read f
 ### Product URLs
 
 Routes use `/g/{slug}` (not `/good/{slug}`).
+
+### Game guides
+
+- Public URLs: `/guides` (index), `/guide/{good-slug}` (article)
+- Admin: `/admin` → **Game guides** section (bilingual HTML editors, default game `rf-online-next`)
+- DB table: `game_guides` (migration: `database/game_guides_migration.sql`)
+- Language rule: one filled language → shown to everyone; both filled → visitor browser/session language
+- New PHP classes must be `require_once` in `public/index.php` (no Composer autoload)

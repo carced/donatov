@@ -197,6 +197,10 @@ $minPriceUsd = $minPriceUsd ?? 0;
 
             <?php include __DIR__ . '/partials/product_reviews.php'; ?>
 
+            <?php if (!empty($gameGuideResolved)): ?>
+            <?php include __DIR__ . '/partials/game_guide_teaser.php'; ?>
+            <?php endif; ?>
+
             <?php include __DIR__ . '/partials/product_listing_seo.php'; ?>
 
             <?php

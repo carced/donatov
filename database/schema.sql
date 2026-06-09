@@ -212,4 +212,20 @@ CREATE TABLE IF NOT EXISTS referral_clicks (
     INDEX idx_clicks_account (account_id)
 );
 
+CREATE TABLE IF NOT EXISTS game_guides (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    good_slug VARCHAR(255) NOT NULL,
+    title_ru VARCHAR(512) DEFAULT NULL,
+    title_en VARCHAR(512) DEFAULT NULL,
+    content_ru MEDIUMTEXT DEFAULT NULL,
+    content_en MEDIUMTEXT DEFAULT NULL,
+    meta_description_ru TEXT DEFAULT NULL,
+    meta_description_en TEXT DEFAULT NULL,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_guide_slug (good_slug),
+    INDEX idx_guide_enabled (enabled)
+);
+
 SET FOREIGN_KEY_CHECKS = 1;

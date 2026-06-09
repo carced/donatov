@@ -30,6 +30,8 @@ final class Seo
             'checkout' => self::checkout($ctx, $site, $base, $lang),
             'order' => self::order($ctx, $data, $site, $base, $lang),
             'referral' => self::referral($ctx, $site, $base, $lang),
+            'guide' => self::guide($ctx, $data, $catalog, $site, $base, $lang),
+            'guides_index' => self::guidesIndex($ctx, $site, $base, $lang),
             '404' => self::notFound($ctx, $site, $base),
             default => $ctx,
         };
@@ -65,13 +67,15 @@ final class Seo
     }
 
     /** @param list<array{slug: string, updated_at?: string}> $goods */
-    public static function sitemapXml(array $goods, string $lang): string
+    /** @param list<array{good_slug: string, updated_at?: string}> $guides */
+    public static function sitemapXml(array $goods, array $guides, string $lang): string
     {
         $base = self::siteUrl();
         $now = date('c');
         $urls = [
             ['loc' => $base . '/', 'priority' => '1.0', 'changefreq' => 'daily'],
             ['loc' => $base . '/catalog', 'priority' => '0.9', 'changefreq' => 'daily'],
+            ['loc' => $base . '/guides', 'priority' => '0.85', 'changefreq' => 'weekly'],
             ['loc' => $base . '/referral', 'priority' => '0.7', 'changefreq' => 'weekly'],
         ];
         foreach ($goods as $g) {
@@ -80,6 +84,14 @@ final class Seo
                 'priority' => '0.8',
                 'changefreq' => 'weekly',
                 'lastmod' => isset($g['updated_at']) ? date('c', strtotime($g['updated_at'])) : $now,
+            ];
+        }
+        foreach ($guides as $guide) {
+            $urls[] = [
+                'loc' => $base . '/guide/' . rawurlencode((string) $guide['good_slug']),
+                'priority' => '0.75',
+                'changefreq' => 'weekly',
+                'lastmod' => isset($guide['updated_at']) ? date('c', strtotime($guide['updated_at'])) : $now,
             ];
         }
 
@@ -349,12 +361,79 @@ final class Seo
         ];
     }
 
+    /** @param array<string, mixed> $ctx */
+    private static function guide(
+        array $ctx,
+        array $data,
+        CatalogRepository $catalog,
+        string $site,
+        string $base,
+        string $lang,
+    ): array {
+        $resolved = $data['resolved'];
+        $good = $data['good'];
+        $productName = $data['productName'];
+        $slug = (string) $good['slug'];
+        $ctx['title'] = I18n::t('seo_guide_title', ['product' => $productName, 'site' => $site]);
+        $ctx['description'] = GameGuide::metaDescription($resolved, $productName, $site);
+        $ctx['canonical'] = self::absoluteUrl('/guide/' . $slug);
+        $ctx['og_type'] = 'article';
+        $crumbs = [
+            ['label' => I18n::t('nav_home'), 'url' => '/'],
+            ['label' => I18n::t('nav_guides'), 'url' => '/guides'],
+            ['label' => $productName, 'url' => null],
+        ];
+        $ctx['breadcrumbs'] = $crumbs;
+        $cover = $good['cover_path'] ?? $good['cover_url'] ?? '/assets/placeholder.png';
+        $ctx['json_ld'][] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $resolved['title'],
+            'description' => $ctx['description'],
+            'image' => self::absoluteUrl($cover),
+            'url' => $ctx['canonical'],
+            'inLanguage' => $resolved['resolved_lang'],
+            'author' => ['@type' => 'Organization', 'name' => $site],
+            'publisher' => ['@type' => 'Organization', 'name' => $site, 'url' => $base],
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $ctx['canonical']],
+            'about' => [
+                '@type' => 'Product',
+                'name' => $productName,
+                'url' => self::absoluteUrl('/g/' . $slug),
+            ],
+        ];
+        $ctx['json_ld'][] = self::breadcrumbListSchema($crumbs, $base);
+        return $ctx;
+    }
+
+    /** @param array<string, mixed> $ctx */
+    private static function guidesIndex(array $ctx, string $site, string $base, string $lang): array
+    {
+        $ctx['title'] = I18n::t('seo_guides_index_title', ['site' => $site]);
+        $ctx['description'] = I18n::t('seo_guides_index_description', ['site' => $site]);
+        $ctx['canonical'] = self::absoluteUrl('/guides');
+        $ctx['breadcrumbs'] = [
+            ['label' => I18n::t('nav_home'), 'url' => '/'],
+            ['label' => I18n::t('nav_guides'), 'url' => null],
+        ];
+        $ctx['json_ld'][] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $ctx['title'],
+            'description' => $ctx['description'],
+            'url' => $ctx['canonical'],
+            'inLanguage' => $lang,
+        ];
+        return $ctx;
+    }
+
     /** @return list<array{label: string, href: string, title?: string}> */
     public static function footerLinks(CatalogRepository $catalog): array
     {
         $links = [
             ['label' => I18n::t('nav_home'), 'href' => '/', 'title' => I18n::t('seo_link_home_title')],
             ['label' => I18n::t('nav_catalog'), 'href' => '/catalog', 'title' => I18n::t('seo_link_catalog_title')],
+            ['label' => I18n::t('nav_guides'), 'href' => '/guides', 'title' => I18n::t('seo_link_guides_title')],
             ['label' => I18n::t('nav_referral'), 'href' => '/referral', 'title' => I18n::t('seo_link_referral_title')],
         ];
         foreach (array_slice($catalog->categories(), 0, 6) as $cat) {

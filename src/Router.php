@@ -9,6 +9,7 @@ use PDO;
 final class Router
 {
     private CatalogRepository $catalog;
+    private GuideRepository $guides;
     private OrderService $orders;
 
     public function __construct(
@@ -16,6 +17,7 @@ final class Router
         private string $root,
     ) {
         $this->catalog = new CatalogRepository($pdo);
+        $this->guides = new GuideRepository($pdo);
         $this->orders = new OrderService($pdo, $this->catalog);
     }
 
@@ -54,6 +56,7 @@ final class Router
             '/admin' => $this->admin(),
             '/referral' => $this->referral(),
             '/referral/dashboard' => $this->referral(),
+            '/guides' => $this->guidesIndex(),
             '/sitemap.xml' => $this->sitemap(),
             '/robots.txt' => $this->robotsTxt(),
             default => $this->dynamic($path),
@@ -116,6 +119,7 @@ final class Router
             '/buy/confirm' => $this->postBuyConfirm(),
             '/admin/login' => $this->postAdminLogin(),
             '/admin/settings/adsense' => $this->postAdminAdsense(),
+            '/admin/guides/save' => $this->postAdminGuideSave(),
             default => $this->notFound(),
         };
     }
@@ -173,6 +177,10 @@ final class Router
         $reviewStats = ProductReviews::aggregate($productReviews);
         $productSeoText = ProductSeoCopy::description($good, (float) $minPriceUsd);
         $listingSeo = ProductListingSeo::blocks($good, $packs, $relatedGoods, (float) $minPriceUsd);
+        $gameGuide = $this->guides->findBySlug($slug);
+        $gameGuideResolved = $gameGuide !== null
+            ? GameGuide::resolveContent($gameGuide, I18n::lang())
+            : null;
         $isGoodPage = true;
         $this->render('good', compact(
             'good',
@@ -192,6 +200,64 @@ final class Router
             'reviewStats',
             'productSeoText',
             'listingSeo',
+            'gameGuide',
+            'gameGuideResolved',
+        ));
+    }
+
+    private function guidesIndex(): void
+    {
+        $guideRows = $this->guides->allEnabled();
+        $items = [];
+        foreach ($guideRows as $row) {
+            $resolved = GameGuide::resolveContent($row, I18n::lang());
+            if ($resolved === null) {
+                continue;
+            }
+            $good = $this->catalog->goodBySlug((string) $row['good_slug']);
+            if (!$good) {
+                continue;
+            }
+            $items[] = [
+                'guide' => $row,
+                'resolved' => $resolved,
+                'good' => $good,
+                'productName' => GoodName::display($good),
+                'excerpt' => GameGuide::excerpt($resolved['content']),
+                'guideUrl' => GameGuide::guideUrl((string) $row['good_slug']),
+                'storeUrl' => GameGuide::storeUrl((string) $row['good_slug']),
+            ];
+        }
+        $this->render('guides_index', compact('items'));
+    }
+
+    private function guide(string $slug): void
+    {
+        $guideRow = $this->guides->findBySlug($slug);
+        if (!$guideRow) {
+            $this->notFound();
+            return;
+        }
+        $resolved = GameGuide::resolveContent($guideRow, I18n::lang());
+        if ($resolved === null) {
+            $this->notFound();
+            return;
+        }
+        $good = $this->catalog->goodBySlug($slug);
+        if (!$good) {
+            $this->notFound();
+            return;
+        }
+        $productName = GoodName::display($good);
+        $minPriceUsd = $this->catalog->attachMinPrices([$good])[0]['min_price_usd'] ?? 0.0;
+        $guideContentHtml = GameGuide::sanitizeHtml($resolved['content']);
+        $this->render('guide', compact(
+            'guideRow',
+            'resolved',
+            'good',
+            'productName',
+            'minPriceUsd',
+            'guideContentHtml',
         ));
     }
 
@@ -328,7 +394,18 @@ final class Router
         }
         $orders = $this->orders->allOrders();
         $adsenseCode = $this->settingValue('adsense_code') ?? '';
-        $this->render('admin_orders', compact('orders', 'adsenseCode'));
+        $adminGoods = $this->catalog->catalogGoods(null, null);
+        $adminGuides = $this->guides->allForAdmin();
+        $editSlug = trim((string) ($_GET['guide'] ?? 'rf-online-next'));
+        $editGuide = $this->guides->findAnyBySlug($editSlug);
+        $this->render('admin_orders', compact(
+            'orders',
+            'adsenseCode',
+            'adminGoods',
+            'adminGuides',
+            'editSlug',
+            'editGuide',
+        ));
     }
 
     private function postAdminLogin(): void
@@ -356,6 +433,38 @@ final class Router
         $this->redirect('/admin');
     }
 
+    private function postAdminGuideSave(): void
+    {
+        if (empty($_SESSION['admin'])) {
+            $this->redirect('/admin');
+            return;
+        }
+
+        $slug = trim((string) ($_POST['good_slug'] ?? ''));
+        if ($slug === '' || !preg_match('/^[a-z0-9\-]+$/', $slug)) {
+            $_SESSION['flash_error'] = 'Invalid game slug';
+            $this->redirect('/admin');
+            return;
+        }
+        if ($this->catalog->goodBySlug($slug) === null) {
+            $_SESSION['flash_error'] = 'Game not found for slug: ' . $slug;
+            $this->redirect('/admin?guide=' . rawurlencode($slug));
+            return;
+        }
+
+        $this->guides->upsert($slug, [
+            'title_ru' => $_POST['title_ru'] ?? '',
+            'title_en' => $_POST['title_en'] ?? '',
+            'content_ru' => $_POST['content_ru'] ?? '',
+            'content_en' => $_POST['content_en'] ?? '',
+            'meta_description_ru' => $_POST['meta_description_ru'] ?? '',
+            'meta_description_en' => $_POST['meta_description_en'] ?? '',
+            'enabled' => isset($_POST['enabled']) ? 1 : 0,
+        ]);
+        $_SESSION['flash_success'] = I18n::t('admin_guide_saved');
+        $this->redirect('/admin?guide=' . rawurlencode($slug));
+    }
+
     private function robotsTxt(): void
     {
         $base = Seo::siteUrl();
@@ -367,13 +476,18 @@ final class Router
     private function sitemap(): void
     {
         $goods = $this->catalog->allGoodsForSitemap();
+        $guideSlugs = $this->guides->allForSitemap();
         header('Content-Type: application/xml; charset=utf-8');
-        echo Seo::sitemapXml($goods, I18n::lang());
+        echo Seo::sitemapXml($goods, $guideSlugs, I18n::lang());
         exit;
     }
 
     private function dynamic(string $path): void
     {
+        if (preg_match('#^/guide/([a-z0-9\-]+)$#', $path, $m)) {
+            $this->guide($m[1]);
+            return;
+        }
         if (preg_match('#^/g/([a-z0-9\-]+)$#', $path, $m)) {
             $this->good($m[1]);
             return;

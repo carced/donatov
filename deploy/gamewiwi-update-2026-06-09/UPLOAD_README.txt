@@ -75,4 +75,4 @@ TROUBLESHOOTING
   • 500 error after upload: check public/index.php includes GameGuide.php and
     GuideRepository.php (require_once lines near Router.php).
   • Guides not saving: game_guides table missing — re-import SQL.
-  • RF Online cover missing: ensure public/assets/placeholder.png exists on server.
+  • RF Online cover missing: upload public/assets/covers/rf-online-next.jpg from the zip.

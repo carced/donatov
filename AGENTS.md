@@ -1,0 +1,44 @@
+# AGENTS.md
+
+## Cursor Cloud specific instructions
+
+### Services
+
+| Service | Port | Start command |
+|---------|------|---------------|
+| PHP + Apache (web) | 8080 | `docker compose up -d --build` |
+| MySQL 8 | 3306 | Included in `docker compose up` |
+
+See `README.md` for full setup (scraper, import, cron).
+
+### First-time catalog data
+
+Fast path without scraping:
+
+```bash
+unzip -qo database/site_assets_bundle.zip -d public/assets/
+docker compose exec -T mysql mysql -u donatov -pdonatov_secret donatov < database/catalog_seed.sql
+```
+
+Full path: scrape with `python3 scraper/scrape.py`, then `docker compose exec web php import/import_to_mysql.php`.
+
+### Writable directories
+
+The app writes runtime files to `data/` (crypto rate cache, scraper output) and `storage/` (install lock). The Docker entrypoint (`docker-entrypoint.sh`) creates these on container start. If running PHP outside Docker, create them manually: `mkdir -p data storage`.
+
+### Lint / tests
+
+No automated test suite or linter is configured. PHP syntax check:
+
+```bash
+docker compose exec web bash -c 'find /var/www/html -name "*.php" | while read f; do php -l "$f" || exit 1; done'
+```
+
+### Admin
+
+- URL: `http://localhost:8080/admin`
+- Password: value of `ADMIN_PASSWORD` in `.env` (default `changeme`)
+
+### Product URLs
+
+Routes use `/g/{slug}` (not `/good/{slug}`).

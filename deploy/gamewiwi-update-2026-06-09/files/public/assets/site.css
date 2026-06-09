@@ -364,14 +364,22 @@ a {
   padding: 12px 22px;
   background: var(--accent-gradient);
   color: #fff !important;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
+  line-height: 1.25;
   text-decoration: none;
+  text-align: center;
   font-family: inherit;
   transition: opacity var(--transition), transform var(--transition);
+}
+
+button.btn {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .btn:hover {
@@ -1034,6 +1042,7 @@ h1 {
 }
 .good-card-actions {
   display: flex;
+  align-items: stretch;
   gap: 8px;
   padding: 10px 12px;
   background: var(--bg-card);
@@ -1043,16 +1052,22 @@ h1 {
 }
 .good-card-actions .btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
   padding: 8px 10px;
   font-size: 0.85rem;
+  line-height: 1.25;
 }
 .btn-free-link {
   background: linear-gradient(135deg, #10b981, #06b6d4) !important;
   color: #fff !important;
-  border: none !important;
+  border-color: transparent !important;
 }
 .btn-buy-link {
   background: var(--accent-gradient) !important;
+  border-color: transparent !important;
 }
 .good-card__meta {
   display: block;
@@ -1067,9 +1082,14 @@ h1 {
   align-items: stretch;
 }
 .pack-actions .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: 2.5rem;
   padding: 8px 12px;
   font-size: 0.85rem;
+  line-height: 1.25;
 }
 .home-listings__head {
   display: flex;
@@ -1511,17 +1531,22 @@ input, select, textarea, .form-control {
 .guide-cta__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.6rem;
 }
 .guide-cta__btn {
   flex: 1 1 180px;
-  text-align: center;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: 3rem;
+  text-align: center;
+  line-height: 1.25;
   white-space: normal;
 }
 .guide-cta__btn--buy {
   background: var(--accent-gradient);
-  border: none;
+  border-color: transparent;
   color: #fff;
   font-weight: 600;
 }

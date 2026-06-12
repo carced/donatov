@@ -1,11 +1,11 @@
 GameWiwi — guides refresh + RF Online pack update
 =================================================
 
-CONTENTS
---------
-  files/                         → upload over your live site
-  rf-online-next-packs-update.sql → import into MySQL (pack changes)
-  UPLOAD_README.txt              → this file
+CONTENTS (same folder as this file after unzip)
+-----------------------------------------------
+  guides-refresh-2026-06-09.sql  ← IMPORT THIS in phpMyAdmin / MySQL
+  files/                         ← upload over your live site
+  UPLOAD_README.txt              ← this file
 
 WHAT'S INCLUDED
 ---------------
@@ -24,10 +24,14 @@ STEP 2 — UPLOAD FILES
 
 STEP 3 — IMPORT SQL
 -------------------
-  phpMyAdmin → Import → rf-online-next-packs-update.sql
+  The SQL file is in this folder (NOT inside files/):
 
-  Or SSH:
-    mysql -u USER -p DATABASE < rf-online-next-packs-update.sql
+    guides-refresh-2026-06-09.sql
+
+  phpMyAdmin → your database → Import → choose that file
+
+  Or SSH (from the folder where you extracted the zip):
+    mysql -u USER -p DATABASE < guides-refresh-2026-06-09.sql
 
 STEP 4 — VERIFY
 ---------------

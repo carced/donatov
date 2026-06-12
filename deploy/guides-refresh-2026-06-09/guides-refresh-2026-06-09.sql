@@ -1,5 +1,6 @@
--- RF Online Next — update crystal packs (remove 160, add 4000 & 8000)
--- Run: mysql -u USER -p DATABASE < database/rf_online_next_packs_update.sql
+-- GameWiwi guides refresh — RF Online Next pack update
+-- Remove Crystals 160, add Crystals 4000 ($49) and 8000 ($89)
+-- Run: mysql -u USER -p DATABASE < guides-refresh-2026-06-09.sql
 
 SET NAMES utf8mb4;
 

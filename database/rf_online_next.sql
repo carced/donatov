@@ -30,10 +30,11 @@ INSERT INTO goods (
     sort_order = VALUES(sort_order);
 
 INSERT INTO packs (good_id, source_pack_id, name_ru, price_rub_source, price_usd, in_stock) VALUES
-    (528, 52801, 'Crystals 160 💎', 201.60, 2.24, 1),
     (528, 52802, 'Crystals 360 💎', 466.20, 5.18, 1),
     (528, 52803, 'Crystals 1200 💎', 1498.50, 16.65, 1),
-    (528, 52804, 'Crystals 2000 💎', 2485.80, 27.62, 1)
+    (528, 52804, 'Crystals 2000 💎', 2485.80, 27.62, 1),
+    (528, 52805, 'Crystals 4000 💎', 4410.00, 49.00, 1),
+    (528, 52806, 'Crystals 8000 💎', 8010.00, 89.00, 1)
 ON DUPLICATE KEY UPDATE
     name_ru = VALUES(name_ru),
     price_rub_source = VALUES(price_rub_source),
@@ -85,10 +86,11 @@ INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value) 
     ('good_field', '528:region', 'label', 'en', 'Region'),
     ('good_field', '528:nickname', 'label', 'en', 'Nickname'),
     ('good_field', '528:email', 'label', 'en', 'Email'),
-    ('pack', '528:52801', 'name', 'en', 'Crystals 160 💎'),
     ('pack', '528:52802', 'name', 'en', 'Crystals 360 💎'),
     ('pack', '528:52803', 'name', 'en', 'Crystals 1200 💎'),
-    ('pack', '528:52804', 'name', 'en', 'Crystals 2000 💎')
+    ('pack', '528:52804', 'name', 'en', 'Crystals 2000 💎'),
+    ('pack', '528:52805', 'name', 'en', 'Crystals 4000 💎'),
+    ('pack', '528:52806', 'name', 'en', 'Crystals 8000 💎')
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
 
 UPDATE goods SET sort_order = sort_order + 1 WHERE id != 528 AND sort_order >= 0;

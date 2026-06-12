@@ -23,6 +23,11 @@ function pack_name(array $pack): string
     return \App\ListingTranslator::toEnglish($name);
 }
 
+function guide_search_haystack(string $title, string $productName, string $excerpt, string $slug = ''): string
+{
+    return utf8_strtolower(trim($title . ' ' . $productName . ' ' . $excerpt . ' ' . $slug));
+}
+
 function field_label(array $field): string
 {
     $label = trans_entity('good_field', $field['good_id'] . ':' . $field['field_key'], 'label', $field['label_ru']);

@@ -16,11 +16,6 @@ $storeUrl = \App\GameGuide::storeUrl($guideSlug);
         </p>
         <h1 itemprop="name"><?= e($resolved['title']) ?></h1>
         <p class="game-guide-page__lead"><?= e(t('guide_page_lead', ['product' => $productName])) ?></p>
-        <?php if ($minPriceUsd > 0): ?>
-        <div class="game-guide-page__meta">
-            <span class="game-guide-page__price"><?= e(t('seo_from_price', ['price' => price_usd((float) $minPriceUsd)])) ?></span>
-        </div>
-        <?php endif; ?>
     </header>
 
     <?php

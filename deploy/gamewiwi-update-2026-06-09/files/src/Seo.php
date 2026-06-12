@@ -414,10 +414,15 @@ final class Seo
             'author' => ['@type' => 'Organization', 'name' => $site],
             'publisher' => ['@type' => 'Organization', 'name' => $site, 'url' => $base],
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $ctx['canonical']],
+            'articleSection' => I18n::t('nav_guides'),
             'about' => [
-                '@type' => 'Product',
+                '@type' => 'VideoGame',
                 'name' => $productName,
-                'url' => self::absoluteUrl('/g/' . $goodSlug),
+            ],
+            'isPartOf' => [
+                '@type' => 'WebSite',
+                'name' => $site,
+                'url' => $base,
             ],
         ];
         $ctx['json_ld'][] = self::breadcrumbListSchema($crumbs, $base);
@@ -449,6 +454,15 @@ final class Seo
             'description' => $ctx['description'],
             'url' => $ctx['canonical'],
             'inLanguage' => $lang,
+            'about' => [
+                '@type' => 'VideoGame',
+                'name' => $productName,
+            ],
+            'isPartOf' => [
+                '@type' => 'WebSite',
+                'name' => $site,
+                'url' => $base,
+            ],
         ];
         return $ctx;
     }
@@ -470,6 +484,15 @@ final class Seo
             'description' => $ctx['description'],
             'url' => $ctx['canonical'],
             'inLanguage' => $lang,
+            'about' => [
+                '@type' => 'ItemList',
+                'name' => I18n::t('guides_index_heading'),
+            ],
+            'isPartOf' => [
+                '@type' => 'WebSite',
+                'name' => $site,
+                'url' => $base,
+            ],
         ];
         return $ctx;
     }

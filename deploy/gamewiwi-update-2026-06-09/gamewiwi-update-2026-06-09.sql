@@ -136,10 +136,11 @@ INSERT INTO packs (good_id, source_pack_id, name_ru, price_rub_source, price_usd
 SELECT g.id, v.source_pack_id, v.name_ru, v.price_rub_source, v.price_usd, 1
 FROM goods g
 CROSS JOIN (
-    SELECT 52801 AS source_pack_id, 'Crystals 160 💎' AS name_ru, 201.60 AS price_rub_source, 2.24 AS price_usd
-    UNION ALL SELECT 52802, 'Crystals 360 💎', 466.20, 5.18
+    SELECT 52802 AS source_pack_id, 'Crystals 360 💎' AS name_ru, 466.20 AS price_rub_source, 5.18 AS price_usd
     UNION ALL SELECT 52803, 'Crystals 1200 💎', 1498.50, 16.65
     UNION ALL SELECT 52804, 'Crystals 2000 💎', 2485.80, 27.62
+    UNION ALL SELECT 52805, 'Crystals 4000 💎', 4410.00, 49.00
+    UNION ALL SELECT 52806, 'Crystals 8000 💎', 8010.00, 89.00
 ) v
 WHERE g.slug = 'rf-online-next'
 ON DUPLICATE KEY UPDATE
@@ -202,11 +203,6 @@ FROM goods g WHERE g.slug = 'rf-online-next'
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
 
 INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
-SELECT 'pack', CONCAT(g.id, ':52801'), 'name', 'en', 'Crystals 160 💎'
-FROM goods g WHERE g.slug = 'rf-online-next'
-ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
-
-INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
 SELECT 'pack', CONCAT(g.id, ':52802'), 'name', 'en', 'Crystals 360 💎'
 FROM goods g WHERE g.slug = 'rf-online-next'
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
@@ -220,6 +216,26 @@ INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
 SELECT 'pack', CONCAT(g.id, ':52804'), 'name', 'en', 'Crystals 2000 💎'
 FROM goods g WHERE g.slug = 'rf-online-next'
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
+
+INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
+SELECT 'pack', CONCAT(g.id, ':52805'), 'name', 'en', 'Crystals 4000 💎'
+FROM goods g WHERE g.slug = 'rf-online-next'
+ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
+
+INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
+SELECT 'pack', CONCAT(g.id, ':52806'), 'name', 'en', 'Crystals 8000 💎'
+FROM goods g WHERE g.slug = 'rf-online-next'
+ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
+
+DELETE p FROM packs p
+INNER JOIN goods g ON g.id = p.good_id
+WHERE g.slug = 'rf-online-next' AND p.source_pack_id = 52801;
+
+DELETE t FROM translations t
+INNER JOIN goods g ON g.id = CAST(SUBSTRING_INDEX(t.entity_id, ':', 1) AS UNSIGNED)
+WHERE g.slug = 'rf-online-next'
+  AND t.entity_type = 'pack'
+  AND t.entity_id LIKE CONCAT(g.id, ':52801');
 
 -- Pin RF Online Next to #1 on homepage (sort_order)
 UPDATE goods SET sort_order = sort_order + 1
@@ -239,8 +255,8 @@ INSERT INTO game_guides (
     'how-to-buy-crystals',
     'Гайд RF Online Next — как купить кристаллы',
     'RF Online Next Guide — How to Buy Crystals',
-    '<h2>Что такое кристаллы RF Online Next</h2><p>Кристаллы — премиальная валюта RF Online Next. На GameWiwi вы можете купить паки от 160 до 2000 кристаллов с оплатой криптовалютой.</p><h2>Как оформить заказ</h2><p>Выберите пак на странице игры, укажите регион (Северная Америка или Европа), никнейм и email, затем оплатите удобной монетой.</p><h2>Регионы и аккаунт</h2><p>Убедитесь, что выбран правильный регион сервера и никнейм совпадает с персонажем в игре — так доставка проходит быстрее.</p>',
-    '<h2>What are RF Online Next crystals</h2><p>Crystals are the premium currency in RF Online Next. On GameWiwi you can buy packs from 160 to 2000 crystals with cryptocurrency checkout.</p><h2>How to order</h2><p>Pick a pack on the store page, enter your region (North America or Europe), nickname, and email, then pay with your preferred coin.</p><h2>Regions and account</h2><p>Double-check your server region and in-game nickname so delivery is fast and accurate.</p>',
+    '<h2>Что такое кристаллы RF Online Next</h2><p>Кристаллы — премиальная валюта RF Online Next. Они нужны для покупки предметов, улучшений и других внутриигровых возможностей.</p><h2>Как оформить заказ</h2><p>Выберите пак на странице игры, укажите регион (Северная Америка или Европа), никнейм и email, затем оплатите удобной монетой.</p><h2>Регионы и аккаунт</h2><p>Убедитесь, что выбран правильный регион сервера и никнейм совпадает с персонажем в игре — так доставка проходит быстрее.</p>',
+    '<h2>What are RF Online Next crystals</h2><p>Crystals are the premium currency in RF Online Next. They are used for items, upgrades, and other in-game features.</p><h2>How to order</h2><p>Pick a pack on the store page, enter your region (North America or Europe), nickname, and email, then pay with your preferred coin.</p><h2>Regions and account</h2><p>Double-check your server region and in-game nickname so delivery is fast and accurate.</p>',
     'Гайд по покупке кристаллов RF Online Next: паки, регионы, никнейм и оплата криптой на GameWiwi.',
     'RF Online Next crystals guide: packs, regions, nickname, and crypto checkout on GameWiwi.',
     1,

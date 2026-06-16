@@ -164,9 +164,17 @@ FROM goods g WHERE g.slug = 'rf-online-next';
 INSERT INTO good_fields (
     good_id, field_key, label_ru, field_type, input_type, placeholder, required, validation_json, sort_order
 )
+SELECT g.id, 'server', 'Сервер', 'select', 'string', 'Выберите сервер', 1,
+    '{"id": "rf_online_next_server", "name": "server", "type": "select", "model": "server", "dependsOn": "region", "optionsByParent": {"na": [{"id": "hecate1", "name": "Hecate1[NA]"}, {"id": "hecate2", "name": "Hecate2[NA]"}, {"id": "hecate3", "name": "Hecate3[NA]"}, {"id": "hecate4", "name": "Hecate4[NA]"}], "eu": [{"id": "inanna1", "name": "Inanna1[EU]"}, {"id": "inanna2", "name": "Inanna2[EU]"}, {"id": "inanna3", "name": "Inanna3[EU]"}, {"id": "inanna4", "name": "Inanna4[EU]"}]}, "required": true, "placeholder": "Выберите сервер", "selectOptions": {"hideNoneSelectedText": true}}',
+    1
+FROM goods g WHERE g.slug = 'rf-online-next';
+
+INSERT INTO good_fields (
+    good_id, field_key, label_ru, field_type, input_type, placeholder, required, validation_json, sort_order
+)
 SELECT g.id, 'nickname', 'Никнейм', 'input', 'string', 'Ваш никнейм', 1,
     '{"id": "rf_online_next_nickname", "name": "nickname", "type": "input", "model": "nickname", "required": true, "inputType": "string", "placeholder": "Ваш никнейм", "autocomplete": "off"}',
-    1
+    2
 FROM goods g WHERE g.slug = 'rf-online-next';
 
 INSERT INTO good_fields (
@@ -174,7 +182,7 @@ INSERT INTO good_fields (
 )
 SELECT g.id, 'email', 'Email', 'input', 'email', 'example@gmail.com', 1,
     '{"id": "rf_online_next_email", "name": "email", "type": "input", "model": "email", "required": true, "inputType": "email", "placeholder": "example@gmail.com", "autocomplete": "email"}',
-    2
+    3
 FROM goods g WHERE g.slug = 'rf-online-next';
 
 INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
@@ -189,6 +197,11 @@ ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
 
 INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
 SELECT 'good_field', CONCAT(g.id, ':region'), 'label', 'en', 'Region'
+FROM goods g WHERE g.slug = 'rf-online-next'
+ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
+
+INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value)
+SELECT 'good_field', CONCAT(g.id, ':server'), 'label', 'en', 'Server'
 FROM goods g WHERE g.slug = 'rf-online-next'
 ON DUPLICATE KEY UPDATE text_value = VALUES(text_value);
 

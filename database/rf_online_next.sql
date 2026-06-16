@@ -59,6 +59,17 @@ INSERT INTO good_fields (
 ),
 (
     528,
+    'server',
+    'Сервер',
+    'select',
+    'string',
+    'Выберите сервер',
+    1,
+    '{"id": "rf_online_next_server", "name": "server", "type": "select", "model": "server", "dependsOn": "region", "optionsByParent": {"na": [{"id": "hecate1", "name": "Hecate1[NA]"}, {"id": "hecate2", "name": "Hecate2[NA]"}, {"id": "hecate3", "name": "Hecate3[NA]"}, {"id": "hecate4", "name": "Hecate4[NA]"}], "eu": [{"id": "inanna1", "name": "Inanna1[EU]"}, {"id": "inanna2", "name": "Inanna2[EU]"}, {"id": "inanna3", "name": "Inanna3[EU]"}, {"id": "inanna4", "name": "Inanna4[EU]"}]}, "required": true, "placeholder": "Выберите сервер", "selectOptions": {"hideNoneSelectedText": true}}',
+    1
+),
+(
+    528,
     'nickname',
     'Никнейм',
     'input',
@@ -66,7 +77,7 @@ INSERT INTO good_fields (
     'Ваш никнейм',
     1,
     '{"id": "rf_online_next_nickname", "name": "nickname", "type": "input", "model": "nickname", "required": true, "inputType": "string", "placeholder": "Ваш никнейм", "autocomplete": "off"}',
-    1
+    2
 ),
 (
     528,
@@ -77,13 +88,14 @@ INSERT INTO good_fields (
     'example@gmail.com',
     1,
     '{"id": "rf_online_next_email", "name": "email", "type": "input", "model": "email", "required": true, "inputType": "email", "placeholder": "example@gmail.com", "autocomplete": "email"}',
-    2
+    3
 );
 
 INSERT INTO translations (entity_type, entity_id, field_name, lang, text_value) VALUES
     ('good', '528', 'name', 'en', 'RF Online Next'),
     ('good', '528', 'currency', 'en', 'Crystals'),
     ('good_field', '528:region', 'label', 'en', 'Region'),
+    ('good_field', '528:server', 'label', 'en', 'Server'),
     ('good_field', '528:nickname', 'label', 'en', 'Nickname'),
     ('good_field', '528:email', 'label', 'en', 'Email'),
     ('pack', '528:52802', 'name', 'en', 'Crystals 360 💎'),
